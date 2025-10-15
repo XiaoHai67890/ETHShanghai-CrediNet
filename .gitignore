@@ -1,4 +1,4 @@
 frontend/node_modules/
 backend/target/
 .DS_Store
-
+.idea
