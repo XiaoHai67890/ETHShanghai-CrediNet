@@ -1,4 +1,5 @@
-frontend/node_modules/
-backend/target/
-.DS_Store
-.idea
+**/node_modules/
+**/target/
+**/.DS_Store/
+**/.idea/
+**/__MACOSX
