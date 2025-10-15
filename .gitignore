@@ -1,4 +1,4 @@
 frontend/node_modules/
 credinet-auth/target/
-
+.DS_Store
 
