@@ -1,5 +1,6 @@
 import { getDefaultConfig } from '@rainbow-me/rainbowkit'
 import { mainnet, sepolia, polygon, polygonMumbai, arbitrum, optimism } from 'wagmi/chains'
+import { localhost } from 'wagmi/chains'; 
 
 // 配置支持的链
 export const config = getDefaultConfig({
@@ -12,6 +13,7 @@ export const config = getDefaultConfig({
     polygonMumbai, // Polygon 测试网
     arbitrum,
     optimism,
+    localhost, 
   ],
   ssr: false, // 如果使用 SSR，设置为 true
 })
