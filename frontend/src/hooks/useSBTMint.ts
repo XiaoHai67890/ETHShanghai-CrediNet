@@ -26,6 +26,12 @@ export interface SBTData {
  * SBT 铸造 Hook
  * 处理 SBT 铸造的完整流程，包括动画触发
  */
+type MintWithPermitOptions = {
+  issuer?: Address
+  deadline?: bigint
+  signature?: `0x${string}`
+}
+
 export function useSBTMint() {
   const { address, chainId } = useAccount()
   const publicClient = usePublicClient()
@@ -33,7 +39,7 @@ export function useSBTMint() {
   const [showAnimation, setShowAnimation] = useState(false)
   const [mintedTokenId, setMintedTokenId] = useState<bigint | null>(null)
   const [mintedSBTData, setMintedSBTData] = useState<SBTData | null>(null)
-  const [contractOwner, setContractOwner] = useState<Address | null>(null)
+  const [hasMinterRole, setHasMinterRole] = useState<boolean>(false)
   const timeoutRef = useRef<number | null>(null)
 
   // 获取合约地址
@@ -49,32 +55,42 @@ export function useSBTMint() {
     hash,
   })
 
+  // 使用 AccessControl 检查 MINTER_ROLE（升级版合约无 owner()）
   useEffect(() => {
-    if (!publicClient || !contractAddress) return
+    if (!publicClient || !contractAddress || !address) return
 
     let cancelled = false
 
-    const loadOwner = async () => {
+    const loadMinterRole = async () => {
       try {
-        const owner = await publicClient.readContract({
+        const role = await publicClient.readContract({
           address: contractAddress as Address,
-          abi: SBTRegistryABI,
-          functionName: 'owner',
-        }) as Address
+          abi: AccessControlMinimalABI,
+          functionName: 'MINTER_ROLE',
+        }) as `0x${string}`
+
+        const has = await publicClient.readContract({
+          address: contractAddress as Address,
+          abi: AccessControlMinimalABI,
+          functionName: 'hasRole',
+          args: [role, address as Address],
+        }) as boolean
+
         if (!cancelled) {
-          setContractOwner(owner)
+          setHasMinterRole(Boolean(has))
         }
       } catch (err) {
-        console.error('获取 SBT 合约 owner 失败:', err)
+        console.error('获取 MINTER_ROLE/hasRole 失败:', err)
+        if (!cancelled) setHasMinterRole(false)
       }
     }
 
-    loadOwner()
+    void loadMinterRole()
 
     return () => {
       cancelled = true
     }
-  }, [publicClient, contractAddress])
+  }, [publicClient, contractAddress, address])
 
   // ✅ 优化：交易成功后自动解析事件并触发动画
   useEffect(() => {
@@ -87,11 +103,14 @@ export function useSBTMint() {
           const logs = parseEventLogs({
             abi: SBTRegistryABI,
             logs: receipt.logs,
-            eventName: 'BadgeMinted'
-          })
+            eventName: 'Transfer',
+          }) as Array<{ args: { from: `0x${string}`; to: `0x${string}`; tokenId: bigint } }>
 
-          if (logs.length > 0) {
-            const { to, tokenId, badgeType } = logs[0].args
+          if (Array.isArray(logs) && logs.length > 0) {
+            const first = logs[0]
+            const to = first?.args?.to
+            const tokenId = first?.args?.tokenId
+            const badgeType = undefined
             console.log('📝 解析到的事件:', { to, tokenId, badgeType })
             
             setMintedTokenId(tokenId as bigint)
@@ -139,33 +158,49 @@ export function useSBTMint() {
    */
   const mintSBT = async (
     badgeType: number = 1,
-    tokenURI: string = ''
+    tokenURI: string = '',
+    requestHash?: `0x${string}`,
+    options?: MintWithPermitOptions
   ) => {
     if (!address || !contractAddress) {
       console.error('钱包未连接或合约地址未配置')
       return
     }
 
-    const canDirectMint = contractOwner && address
-      ? address.toLowerCase() === contractOwner.toLowerCase()
-      : false
-
-    if (!canDirectMint) {
-      const err = new Error('当前钱包没有铸造权限，请联系管理员或通过后台发起申请')
-      console.error(err.message)
-      throw err
-    }
+    // 默认 requestHash 使用 0x0 填充（由后端/Agent 校验场景可传真实哈希）
+    const safeRequestHash: `0x${string}` = requestHash ?? ('0x' + '0'.repeat(64)) as `0x${string}`
 
     try {
       setIsMinting(true)
 
       // 使用 async 版本以便捕获和抛出错误
-      const txHash = await writeContractAsync({
-        address: contractAddress as Address,
-        abi: SBTRegistryABI,
-        functionName: 'mintBadge',
-        args: [address, badgeType, tokenURI],
-      })
+      let txHash: `0x${string}` | undefined
+
+      if (hasMinterRole) {
+        txHash = await writeContractAsync({
+          address: contractAddress as Address,
+          abi: SBTRegistryABI,
+          functionName: 'mintBadgeWithValidation',
+          args: [address as Address, badgeType as unknown as number, tokenURI, safeRequestHash],
+        })
+      } else if (options?.issuer && options?.deadline && options?.signature) {
+        txHash = await writeContractAsync({
+          address: contractAddress as Address,
+          abi: SBTRegistryABI,
+          functionName: 'mintWithPermit',
+          args: [
+            options.issuer as Address,
+            address as Address,
+            badgeType as unknown as number,
+            tokenURI,
+            safeRequestHash,
+            options.deadline,
+            options.signature,
+          ],
+        })
+      } else {
+        throw new Error('当前钱包没有铸造权限。请提供 issuer 签名参数（issuer、deadline、signature）或使用具备 MINTER_ROLE 的钱包。')
+      }
 
       return txHash
     } catch (err) {
@@ -231,6 +266,7 @@ export function useSBTMint() {
     mintedTokenId,
     mintedSBTData,
     error,
+    hasMinterRole,
     
     // 方法
     mintSBT,
@@ -310,3 +346,24 @@ function getRarityImage(rarity: number): string {
     default: return '/planets/badge-common.svg'
   }
 }
+
+// 仅包含 AccessControl 所需的最小 ABI（避免因无 owner() 报错）
+const AccessControlMinimalABI = [
+  {
+    inputs: [],
+    name: 'MINTER_ROLE',
+    outputs: [{ internalType: 'bytes32', name: '', type: 'bytes32' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'bytes32', name: 'role', type: 'bytes32' },
+      { internalType: 'address', name: 'account', type: 'address' },
+    ],
+    name: 'hasRole',
+    outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+] as const
