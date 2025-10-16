@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useAccount } from 'wagmi'
 import { motion } from 'framer-motion'
 import { useSBTMint } from '@/hooks/useSBTMint'
 import { useCrediNet } from '@/hooks/useCrediNet'
@@ -9,18 +10,25 @@ import SBTMintAnimation from '@/components/animations/SBTMintAnimation'
  * 展示如何在铸造 SBT 时触发动画
  */
 const MintSBTExample = () => {
+  const { isConnected } = useAccount()
   const { creditScore } = useCrediNet()
   const { 
     mintSBT, 
-    generateSBTMetadata, 
     showAnimation, 
     setShowAnimation,
     isMinting,
     isConfirming,
-    isSuccess 
+    isSuccess,
+    hasMinterRole,
   } = useSBTMint()
 
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'uploaded'>('idle')
+  const [requestHash, setRequestHash] = useState<string>('')
+  const [errorMsg, setErrorMsg] = useState<string>('')
+  // 许可式铸造（无 MINTER_ROLE 场景）
+  const [issuer, setIssuer] = useState<string>('')
+  const [deadline, setDeadline] = useState<string>('')
+  const [signature, setSignature] = useState<string>('')
 
   /**
    * 处理铸造流程
@@ -31,21 +39,35 @@ const MintSBTExample = () => {
    */
   const handleMint = async () => {
     try {
+      setErrorMsg('')
       setUploadStatus('uploading')
-      
-      // 使用动态 Agent 模式
-      // tokenURI 传空字符串，让合约使用 DynamicSBTAgent 生成动态元数据
-      const tokenURI = '' // 空字符串表示使用动态元数据
-      
+      // 使用动态 Agent 模式：tokenURI 传空字符串
+      const tokenURI = ''
       setUploadStatus('uploaded')
+      // 校验可选 requestHash（允许留空，留空时由 Hook 使用全零哈希）
+      const trimmed = requestHash.trim()
+      const valid = trimmed === '' || /^0x[0-9a-fA-F]{64}$/.test(trimmed)
+      if (!valid) {
+        setErrorMsg('requestHash 格式不正确，应为 0x 开头的 64 位十六进制')
+        setUploadStatus('idle')
+        return
+      }
+      // 许可式参数处理（全部填则走 mintWithPermit，否则尝试直接铸造）
+      const hasPermit = issuer && deadline && signature
+      const permitOpts = hasPermit
+        ? {
+            issuer: issuer as `0x${string}`,
+            deadline: BigInt(deadline),
+            signature: signature as `0x${string}`,
+          }
+        : undefined
 
-      // 铸造 SBT（会自动注册到 Agent 并初始化评分）
-      await mintSBT(1, tokenURI) // badgeType=1, tokenURI=''
-      
+      await mintSBT(1, tokenURI, trimmed === '' ? undefined : (trimmed as `0x${string}`), permitOpts)
       console.log('✅ SBT 铸造完成！元数据将由 DynamicSBTAgent 动态生成')
     } catch (error) {
       console.error('❌ 铸造失败:', error)
       setUploadStatus('idle')
+      setErrorMsg('铸造失败，请检查钱包权限与网络后重试')
     }
   }
 
@@ -74,7 +96,6 @@ const MintSBTExample = () => {
             className="glass-card p-6"
           >
             <h2 className="text-2xl font-bold text-white mb-4">当前信用数据</h2>
-            
             {creditScore ? (
               <div className="space-y-4">
                 <div className="text-center mb-6">
@@ -87,23 +108,23 @@ const MintSBTExample = () => {
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <span className="text-gray-300">基石 K</span>
-                    <span className="text-white font-semibold">{creditScore.keystone}</span>
+                    <span className="text-white font-semibold">{creditScore.dimensions.keystone}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-300">能力 A</span>
-                    <span className="text-white font-semibold">{creditScore.ability}</span>
+                    <span className="text-white font-semibold">{creditScore.dimensions.ability}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-300">财富 F</span>
-                    <span className="text-white font-semibold">{creditScore.wealth}</span>
+                    <span className="text-white font-semibold">{creditScore.dimensions.finance}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-300">健康 H</span>
-                    <span className="text-white font-semibold">{creditScore.health}</span>
+                    <span className="text-white font-semibold">{creditScore.dimensions.health}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-300">行为 B</span>
-                    <span className="text-white font-semibold">{creditScore.behavior}</span>
+                    <span className="text-white font-semibold">{creditScore.dimensions.behavior}</span>
                   </div>
                 </div>
 
@@ -115,9 +136,7 @@ const MintSBTExample = () => {
                 </div>
               </div>
             ) : (
-              <div className="text-center text-gray-400 py-8">
-                请先连接钱包
-              </div>
+              <div className="text-center text-gray-400 py-8">请先连接钱包</div>
             )}
           </motion.div>
 
@@ -127,52 +146,84 @@ const MintSBTExample = () => {
             animate={{ opacity: 1, x: 0 }}
             className="glass-card p-6"
           >
-            <h2 className="text-2xl font-bold text-white mb-4">铸造 SBT</h2>
-            
+            <h2 className="text-2xl font-bold text-white mb-2">铸造 SBT</h2>
+            <div className="text-xs text-gray-400 mb-4">
+              铸造权限：{hasMinterRole ? <span className="text-emerald-400">MINTER_ROLE</span> : <span className="text-yellow-400">需要 issuer 签名</span>}
+            </div>
             <div className="space-y-6">
               <div className="text-gray-300 text-sm">
                 <p className="mb-2">🎯 Soulbound Token (SBT) 是不可转移的身份凭证</p>
                 <p className="mb-2">✨ 根据您的五维信用评分动态生成</p>
                 <p>🔒 永久绑定到您的钱包地址</p>
               </div>
-
-              {/* 铸造按钮 */}
+              <div>
+                <button
+                  type="button"
+                  className="px-3 py-2 text-xs rounded bg-slate-700 hover:bg-slate-600 text-white"
+                  onClick={() => setRequestHash('0x8f17fa27955a33340ad3a5d41db4e4d0ec44c9abf2798a3961ab6fdd269bb092')}
+                >
+                  使用演示 requestHash
+                </button>
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm text-gray-400">可选：requestHash</label>
+                <input
+                  value={requestHash}
+                  onChange={(e) => setRequestHash(e.target.value)}
+                  placeholder="0x 开头的 64 位十六进制（留空将使用全零哈希）"
+                  className="w-full px-4 py-3 rounded-lg bg-slate-800/60 border border-slate-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+                {errorMsg && (
+                  <div className="text-sm text-red-400">{errorMsg}</div>
+                )}
+              </div>
+              <div className="space-y-2 pt-2 border-t border-slate-700/50">
+                <div className="text-sm text-gray-400">无 MINTER_ROLE? 也可使用 issuer 签名（mintWithPermit）</div>
+                <input
+                  value={issuer}
+                  onChange={(e) => setIssuer(e.target.value)}
+                  placeholder="issuer（签名者地址）0x..."
+                  className="w-full px-4 py-3 rounded-lg bg-slate-800/60 border border-slate-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+                <input
+                  value={deadline}
+                  onChange={(e) => setDeadline(e.target.value)}
+                  placeholder="deadline（秒级时间戳，如 1739558400）"
+                  className="w-full px-4 py-3 rounded-lg bg-slate-800/60 border border-slate-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+                <input
+                  value={signature}
+                  onChange={(e) => setSignature(e.target.value)}
+                  placeholder="signature（EIP-712 签名 0x...）"
+                  className="w-full px-4 py-3 rounded-lg bg-slate-800/60 border border-slate-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
               <button
                 onClick={handleMint}
-                disabled={!creditScore || isMinting || isConfirming}
+                disabled={!isConnected || !creditScore || isMinting || isConfirming}
                 className={`
                   w-full py-4 px-6 rounded-xl font-bold text-lg
                   transition-all duration-300 transform
-                  ${!creditScore || isMinting || isConfirming
+                  ${!isConnected || !creditScore || isMinting || isConfirming
                     ? 'bg-gray-600 cursor-not-allowed'
                     : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 hover:scale-105 hover:shadow-2xl'
                   }
                   text-white
                 `}
               >
-                {isMinting ? '铸造中...' : isConfirming ? '确认中...' : '铸造 SBT'}
+                {isMinting ? '铸造中...' : isConfirming ? '确认中...' : (!isConnected ? '请先连接钱包' : '铸造 SBT')}
               </button>
 
-              {/* 状态提示 */}
               {uploadStatus === 'uploading' && (
-                <div className="text-center text-yellow-400 text-sm">
-                  ⏳ 正在上传元数据到 IPFS...
-                </div>
+                <div className="text-center text-yellow-400 text-sm">⏳ 正在上传元数据到 IPFS...</div>
               )}
-              
               {uploadStatus === 'uploaded' && (
-                <div className="text-center text-green-400 text-sm">
-                  ✅ 元数据上传完成
-                </div>
+                <div className="text-center text-green-400 text-sm">✅ 元数据上传完成</div>
               )}
-
               {isSuccess && (
-                <div className="text-center text-green-400 text-sm">
-                  🎉 SBT 铸造成功！
-                </div>
+                <div className="text-center text-green-400 text-sm">🎉 SBT 铸造成功！</div>
               )}
 
-              {/* 说明文档 */}
               <div className="mt-8 p-4 bg-slate-800/50 rounded-lg text-sm text-gray-400">
                 <h3 className="font-bold text-white mb-2">🤖 DynamicSBTAgent 技术</h3>
                 <ul className="list-disc list-inside space-y-1">

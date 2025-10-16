@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --open --port 3001",
     "build": "tsc && vite build",
-    "preview": "vite preview",
+    "preview": "vite preview --open --port 3001",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
   },
   "dependencies": {
@@ -14,7 +14,7 @@
     "axios": "^1.12.2",
     "canvas-confetti": "^1.9.3",
     "clsx": "^2.1.1",
-    "ethers": "^6.15.0",
+    "ethers": "^6.13.4",
     "framer-motion": "^11.5.6",
     "lucide-react": "^0.447.0",
     "react": "^18.3.1",
@@ -26,6 +26,7 @@
     "zustand": "^4.5.5"
   },
   "devDependencies": {
+    "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^22.5.5",
     "@types/react": "^18.3.9",
     "@types/react-dom": "^18.3.0",

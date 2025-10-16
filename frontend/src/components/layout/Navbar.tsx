@@ -10,6 +10,7 @@ const Navbar = () => {
     { name: 'Dashboard', path: '/dashboard' },
     { name: 'Data', path: '/data' },
     { name: 'Marketplace', path: '/marketplace' },
+    { name: 'Mint SBT', path: '/mint-sbt' },
     { name: 'Web3 Demo', path: '/web3-demo' },
     { name: 'Docs', path: '/docs' }
   ]
@@ -58,6 +59,14 @@ const Navbar = () => {
                 largeScreen: 'full',
               }}
             />
+            {isConnected && (
+              <Link
+                to="/mint-sbt"
+                className="px-6 py-2 rounded-lg bg-cyan-700 hover:bg-cyan-600 text-white font-semibold transition-all duration-300 hover:scale-105"
+              >
+                铸造 SBT
+              </Link>
+            )}
             {isConnected && (
               <Link
                 to="/profile"
