@@ -28,7 +28,16 @@ async function main() {
   const nonce = await contract.nonces(issuer.address);
   const value = { to, badgeType, tokenURI, requestHash, nonce, deadline };
   const signature = await issuer.signTypedData(domain, types as any, value);
-
+  console.log("\n--- EIP-712 Mint Permit ---");
+  console.log("issuer:", issuer.address);
+  console.log("verifyingContract:", proxy);
+  console.log("to:", to);
+  console.log("badgeType:", badgeType);
+  console.log("tokenURI:", tokenURI);
+  console.log("requestHash:", requestHash);
+  console.log("nonce:", nonce.toString());
+  console.log("deadline:", deadline);
+  console.log("chainId:", Number(chainId));
   console.log("signature:", signature);
 }
 
