@@ -5,13 +5,56 @@
 
 import { useAccount } from 'wagmi'
 import { Web3StatusCard, CreditScoreDisplay, CRNBalanceDisplay } from '../components/web3'
+import DebugInfo from '../components/web3/DebugInfo'
 import { useSBTRegistry, useDataMarketplace } from '../hooks'
-import { ExternalLink, Shield, Award } from 'lucide-react'
-
+import { ExternalLink, Shield, Award, CheckCircle, XCircle } from 'lucide-react'
+import SBTDynamicDisplay from '../components/sbt/SBTDynamicDisplay'
+import { testContractAddresses, getConnectionSummary } from '../utils/contractTest'
+import { runBrowserTest } from '../utils/testContractConnection'
+import { useState, useEffect } from 'react'
 const Web3Demo = () => {
-  const { isConnected } = useAccount()
+  const { isConnected, chainId, address } = useAccount()
   const { badges } = useSBTRegistry()
   const { authorizedApps } = useDataMarketplace()
+  // const { creditScore, updateScore, isUpdating } = useCrediNet()
+  // const { mintSBT, isMinting, showAnimation } = useSBTMint()
+  
+  // 合约连接测试状态
+  const [contractTestResults, setContractTestResults] = useState<any[]>([])
+  const [connectionSummary, setConnectionSummary] = useState<any>(null)
+  const [testResult, setTestResult] = useState<any>(null)
+
+  // 测试合约连接
+  useEffect(() => {
+    if (chainId) {
+      const results = testContractAddresses(chainId)
+      const summary = getConnectionSummary(chainId)
+      setContractTestResults(results)
+      setConnectionSummary(summary)
+    }
+  }, [chainId])
+
+  // 运行合约测试
+  const handleRunTest = async () => {
+    if (!address) return
+    
+    console.log('🧪 开始运行合约测试...')
+    setTestResult({ loading: true })
+    
+    try {
+      const result = await runBrowserTest(address)
+      setTestResult(result)
+    } catch (error) {
+      let errorMsg = '测试失败';
+      if (error instanceof Error && error.message) {
+        errorMsg = error.message;
+      }
+      setTestResult({ 
+        success: false, 
+        error: errorMsg 
+      });
+    }
+  }
 
   return (
     <div className="min-h-screen py-24 px-6">
@@ -47,6 +90,92 @@ const Web3Demo = () => {
           <CreditScoreDisplay />
           <CRNBalanceDisplay />
         </div>
+
+        {/* 调试信息 */}
+        {isConnected && (
+          <div className="mb-8">
+            <DebugInfo />
+          </div>
+        )}
+
+        {/* 合约连接状态 */}
+        {isConnected && chainId && (
+          <div className="mb-8">
+            <div className="glass-card p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <CheckCircle className="text-emerald-400" size={24} />
+                <h3 className="text-lg font-semibold text-white">合约连接状态</h3>
+                {connectionSummary && (
+                  <span className={`text-sm px-2 py-1 rounded-full ${
+                    connectionSummary.connected === connectionSummary.total 
+                      ? 'bg-emerald-500/20 text-emerald-400' 
+                      : 'bg-yellow-500/20 text-yellow-400'
+                  }`}>
+                    {connectionSummary.connected}/{connectionSummary.total}
+                  </span>
+                )}
+              </div>
+              
+              <div className="space-y-3">
+                {contractTestResults.map((result, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-white/5">
+                    <div className="flex items-center gap-3">
+                      {result.isValid ? (
+                        <CheckCircle className="text-emerald-400" size={16} />
+                      ) : (
+                        <XCircle className="text-red-400" size={16} />
+                      )}
+                      <span className="text-white font-medium">{result.contract}</span>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm text-gray-300 font-mono">{result.address}</div>
+                      {result.error && (
+                        <div className="text-xs text-red-400">{result.error}</div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {connectionSummary && (
+                <div className="mt-4 p-3 rounded-lg bg-white/5">
+                  <div className="text-sm text-gray-300">
+                    {connectionSummary.summary}
+                  </div>
+                </div>
+              )}
+
+              {/* 合约测试按钮和结果 */}
+              <div className="mt-4 pt-4 border-t border-white/10">
+                <button
+                  onClick={handleRunTest}
+                  disabled={testResult?.loading}
+                  className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded-lg transition-colors"
+                >
+                  {testResult?.loading ? '测试中...' : '运行合约测试'}
+                </button>
+                
+                {testResult && !testResult.loading && (
+                  <div className="mt-3 p-3 rounded-lg bg-white/5">
+                    <div className={`text-sm ${testResult.success ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {testResult.success ? '✅ 测试成功' : '❌ 测试失败'}
+                    </div>
+                    {testResult.error && (
+                      <div className="text-xs text-red-400 mt-1">{testResult.error}</div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 动态SBT展示 */}
+        {isConnected && (
+          <div className="mb-8">
+            <SBTDynamicDisplay />
+          </div>
+        )}
 
         {/* 第二行：SBT 和授权 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
