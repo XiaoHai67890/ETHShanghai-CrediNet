@@ -37,21 +37,24 @@ export const mockUser: User = {
   displayName: 'CrediNet User'
 }
 
+// 定义五维数据
+const mockDimensions = {
+  keystone: 85,
+  ability: 78,
+  finance: 72,
+  health: 68,
+  behavior: 81
+}
+
 /**
  * Mock信用分数（C-Score）
  * 用于：Dashboard、Profile、雷达图等
- * ⚠️ 五维数值必须保持一致
+ * ⚠️ total 由五维数据动态计算（加权）
  */
 export const mockCreditScore: CreditScore = {
-  total: 782,
+  total: 0, // 将在下面动态计算
   change: 12,
-  dimensions: {
-    keystone: 85,
-    ability: 78,
-    finance: 72,
-    health: 68,
-    behavior: 81
-  },
+  dimensions: mockDimensions,
   lastUpdated: '2025-10-10 14:20'
 }
 
@@ -287,12 +290,36 @@ export const mockDataAuthorizations: DataAuthorization[] = [
  * ⚠️ 此配置必须与 mockCreditScore.dimensions 的键名保持一致
  */
 export const creditDimensions = [
-  { key: 'keystone', name: '基石 K', color: '#8b5cf6', weight: '25%' },
-  { key: 'ability', name: '能力 A', color: '#3b82f6', weight: '30%' },
-  { key: 'finance', name: '财富 F', color: '#f59e0b', weight: '20%' },
-  { key: 'health', name: '健康 H', color: '#10b981', weight: '15%' },
-  { key: 'behavior', name: '行为 B', color: '#ef4444', weight: '10%' }
+  { key: 'keystone', name: '基石 K', color: '#8b5cf6', weight: '25%', weightValue: 2.5 },
+  { key: 'ability', name: '能力 A', color: '#3b82f6', weight: '30%', weightValue: 3.0 },
+  { key: 'finance', name: '财富 F', color: '#f59e0b', weight: '20%', weightValue: 2.0 },
+  { key: 'health', name: '健康 H', color: '#10b981', weight: '15%', weightValue: 1.5 },
+  { key: 'behavior', name: '行为 B', color: '#ef4444', weight: '10%', weightValue: 1.0 }
 ]
+
+/**
+ * 计算信用总分（加权计算）
+ * 根据五维数据和各自权重计算总分
+ */
+export const calculateCreditTotal = (dimensions: {
+  keystone: number
+  ability: number
+  finance: number
+  health: number
+  behavior: number
+}): number => {
+  const total = 
+    dimensions.keystone * 2.5 +  // 25% 权重
+    dimensions.ability * 3.0 +   // 30% 权重
+    dimensions.finance * 2.0 +   // 20% 权重
+    dimensions.health * 1.5 +    // 15% 权重
+    dimensions.behavior * 1.0    // 10% 权重
+  
+  return Math.round(total) // 四舍五入取整
+}
+
+// 动态计算并设置总分
+mockCreditScore.total = calculateCreditTotal(mockCreditScore.dimensions)
 
 /**
  * 应用分类配置
