@@ -65,37 +65,26 @@ const CreditRadarChart = ({ data: external }: Props) => {
       </div>
 
       {/* 雷达图 */}
-      <ResponsiveContainer width="100%" height={300}>
+      <ResponsiveContainer width="100%" height={320}>
         <RadarChart data={data}>
-          <PolarGrid stroke="#2d3250" />
+          <PolarGrid 
+            stroke="#4a5568" 
+            strokeWidth={1}
+          />
           <PolarAngleAxis
             dataKey="dimension"
-            tick={(props) => {
-              const { x, y, payload } = props
-              const dim = data.find(d => d.dimension === payload.value)
-              const IconComponent = dim?.icon
-              
-              return (
-                <g transform={`translate(${x},${y})`}>
-                  {IconComponent && (
-                    <foreignObject x={-12} y={-12} width={24} height={24}>
-                      <div className="flex items-center justify-center">
-                        <IconComponent 
-                          size={20} 
-                          style={{ color: dim?.color || '#9ca3af' }}
-                        />
-                      </div>
-                    </foreignObject>
-                  )}
-                </g>
-              )
+            tick={{
+              fill: '#e2e8f0',
+              fontSize: 14,
+              fontWeight: 500
             }}
           />
           <Radar
             dataKey="value"
-            stroke="#3b82f6"
+            stroke="#60a5fa"
+            strokeWidth={2.5}
             fill="#3b82f6"
-            fillOpacity={0.6}
+            fillOpacity={0.5}
             animationDuration={1000}
             animationBegin={0}
           />
@@ -106,6 +95,7 @@ const CreditRadarChart = ({ data: external }: Props) => {
               borderRadius: '12px',
               color: '#fff'
             }}
+            formatter={(value: any) => [`${value}`, '得分']}
           />
         </RadarChart>
       </ResponsiveContainer>
