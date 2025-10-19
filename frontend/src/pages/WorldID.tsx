@@ -115,7 +115,7 @@ const WorldID = () => {
                   <div>
                     <h3 className="text-xl font-bold text-white mb-2">验证成功！</h3>
                     <p className="text-gray-300 mb-4">
-                      您已成功通过 World ID 验证，您的信用评分已提升
+                      您已成功通过 World ID 验证
                     </p>
                     <div className="text-gray-400 text-sm">
                       验证时间: {new Date().toLocaleDateString()}
