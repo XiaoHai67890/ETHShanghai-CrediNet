@@ -9,7 +9,24 @@ import { DynamicSBTAgentABI } from '../contracts/abis'
 
 const DYNAMIC_SBT_AGENT_ADDRESS = '0x7CE2fbEfDF5dc7E43477816bfD2e89d5b26Cff38'
 
-export async function testContractConnection(userAddress: string) {
+type SuccessfulResult = {
+  success: true
+  hasData: boolean
+  score?: any
+  totalScore?: number
+  rarity?: number
+  tokenId?: number
+  message?: string
+}
+
+type FailedResult = {
+  success: false
+  error: string
+}
+
+export type ContractTestResult = SuccessfulResult | FailedResult
+
+export async function testContractConnection(userAddress: string): Promise<ContractTestResult> {
   console.log('🧪 开始测试合约连接...')
   console.log('📍 用户地址:', userAddress)
   console.log('🎯 合约地址:', DYNAMIC_SBT_AGENT_ADDRESS)
@@ -34,11 +51,18 @@ export async function testContractConnection(userAddress: string) {
         console.log('✅ 合约存在，代码长度:', code.length)
       } else {
         console.log('❌ 合约不存在或未部署')
-        return false
+        return {
+          success: false,
+          error: '合约不存在或未部署',
+        }
       }
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
       console.log('❌ 获取合约代码失败:', error)
-      return false
+      return {
+        success: false,
+        error: message || '获取合约代码失败',
+      }
     }
 
     // 测试2: 调用 getUserCreditInfo
@@ -64,33 +88,35 @@ export async function testContractConnection(userAddress: string) {
         
         return {
           success: true,
-          hasData: totalScore > 0,
+          hasData: Number(totalScore) > 0,
           score,
           totalScore: Number(totalScore),
           rarity: Number(rarity),
-          tokenId: Number(tokenId)
+          tokenId: Number(tokenId),
         }
       } else {
         console.log('⚠️ 返回数据格式不正确')
         return {
           success: true,
           hasData: false,
-          message: '合约返回数据格式不正确'
+          message: '合约返回数据格式不正确',
         }
       }
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
       console.log('❌ 合约调用失败:', error)
       return {
         success: false,
-        error: error.message || '未知错误'
+        error: message || '未知错误',
       }
     }
 
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
     console.log('❌ 测试失败:', error)
     return {
       success: false,
-      error: error.message || '连接失败'
+      error: message || '连接失败',
     }
   }
 }

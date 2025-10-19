@@ -119,16 +119,24 @@ export function useCrediNet() {
       }
     : null
 
+  // 归一化错误对象，便于组件安全读取
+  const formattedError: Error | null = creditInfoError instanceof Error
+    ? creditInfoError
+    : creditInfoError
+    ? new Error(String(creditInfoError))
+    : null
+
   return {
     // 数据
     address,
     chainId,
     userTokenId,
-    creditScore: formattedCreditScore,
+  creditScore: formattedCreditScore,
+  contractAddress,
     
     // 状态信息
     isLoading: creditInfoLoading,
-    error: creditInfoError,
+    error: formattedError,
     
     // 评分更新操作
     updateScore: handleUpdateScore,

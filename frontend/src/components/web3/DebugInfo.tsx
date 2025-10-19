@@ -7,13 +7,21 @@ import { useAccount } from 'wagmi'
 import { useCrediNet } from '../../hooks'
 import { getContractAddresses } from '../../contracts/addresses'
 import { Copy, CheckCircle, XCircle, AlertCircle, Play } from 'lucide-react'
-import { runBrowserTest } from '../../utils/testContractConnection'
+import { runBrowserTest, type ContractTestResult } from '../../utils/testContractConnection'
 import { useState } from 'react'
+
+type LoadingState = { loading: true }
+
+const isLoadingState = (value: unknown): value is LoadingState =>
+  typeof value === 'object' && value !== null && 'loading' in value
+
+const isContractResult = (value: unknown): value is ContractTestResult =>
+  typeof value === 'object' && value !== null && 'success' in value
 
 const DebugInfo = () => {
   const { address, chainId, isConnected } = useAccount()
   const { creditScore, isLoading, error, contractAddress } = useCrediNet()
-  const [testResult, setTestResult] = useState<any>(null)
+  const [testResult, setTestResult] = useState<ContractTestResult | LoadingState | null>(null)
   
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
@@ -29,10 +37,11 @@ const DebugInfo = () => {
     try {
       const result = await runBrowserTest(address)
       setTestResult(result)
-    } catch (error) {
-      setTestResult({ 
-        success: false, 
-        error: error.message || '测试失败' 
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '测试失败'
+      setTestResult({
+        success: false,
+        error: message,
       })
     }
   }
@@ -70,6 +79,7 @@ const DebugInfo = () => {
               <button
                 onClick={() => copyToClipboard(address || '')}
                 className="p-1 hover:bg-white/10 rounded"
+                aria-label="复制钱包地址"
               >
                 <Copy size={12} className="text-gray-400" />
               </button>
@@ -139,6 +149,12 @@ const DebugInfo = () => {
                 {creditScore ? '有数据' : '无数据'}
               </span>
             </div>
+            <div className="flex items-center justify-between">
+              <span className="text-gray-400">当前合约地址:</span>
+              <span className="text-white font-mono text-xs">
+                {contractAddress ? `${contractAddress.slice(0, 6)}...${contractAddress.slice(-4)}` : '未设置'}
+              </span>
+            </div>
             
             {error && (
               <div className="flex items-center justify-between">
@@ -172,19 +188,19 @@ const DebugInfo = () => {
             <span className="text-gray-400">合约测试:</span>
             <button
               onClick={runContractTest}
-              disabled={testResult?.loading}
+              disabled={isLoadingState(testResult)}
               className="flex items-center gap-1 px-2 py-1 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded text-xs transition-colors disabled:opacity-50"
             >
               <Play size={12} />
-              {testResult?.loading ? '测试中...' : '运行测试'}
+              {isLoadingState(testResult) ? '测试中...' : '运行测试'}
             </button>
           </div>
           
           {testResult && (
             <div className="bg-black/30 p-2 rounded text-xs">
-              {testResult.loading ? (
+              {isLoadingState(testResult) ? (
                 <div className="text-yellow-400">测试中...</div>
-              ) : testResult.success ? (
+              ) : isContractResult(testResult) && testResult.success ? (
                 <div>
                   <div className={`text-sm mb-1 ${testResult.hasData ? 'text-green-400' : 'text-yellow-400'}`}>
                     {testResult.hasData ? '✅ 有数据' : '⚠️ 无数据'}
@@ -194,12 +210,11 @@ const DebugInfo = () => {
                       总分: {testResult.totalScore}
                     </div>
                   )}
-                  {testResult.error && (
-                    <div className="text-red-400">错误: {testResult.error}</div>
-                  )}
                 </div>
-              ) : (
+              ) : isContractResult(testResult) ? (
                 <div className="text-red-400">❌ 测试失败: {testResult.error}</div>
+              ) : (
+                <div className="text-red-400">❌ 测试失败</div>
               )}
             </div>
           )}

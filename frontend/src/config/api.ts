@@ -61,11 +61,11 @@ export const API_ENDPOINTS = {
   
   // 信用评分
   CREDIT: {
-    CALCULATE: '/credit/score/calculate',
+    CALCULATE: '/credit/calculate',
     GET_SCORE: '/credit/score',
-    HISTORY: '/credit/score/history',
+    HISTORY: '/credit/history',
     PROFILE: '/credit/profile',
-    DATA_SOURCES_STATUS: '/credit/data-sources/status',
+    DATA_SOURCES_STATUS: '/credit/data_sources',
   },
   
   // SBT

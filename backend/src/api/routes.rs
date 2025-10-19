@@ -1,18 +1,20 @@
+use super::handlers::*;
+use crate::shared::jwt::AppState;
+use axum::http::StatusCode;
+use axum::response::IntoResponse;
+use axum::Json;
 use axum::{
     routing::{get, post},
     Router,
 };
-use axum::response::IntoResponse;
-use axum::http::StatusCode;
-use axum::Json;
-use crate::shared::jwt::AppState;
-use super::handlers::*;
 
 pub fn create_api_routes() -> Router<AppState> {
     Router::new()
         // Auth
         .route("/auth/send_code", post(api_send_code))
         .route("/auth/login", post(api_login))
+    .route("/auth/refresh", post(api_refresh_token))
+    .route("/auth/logout", post(api_logout))
         // User
         .route("/user/profile", get(get_user_profile))
         .route("/user/bind/social", post(bind_social))
@@ -254,5 +256,3 @@ pub fn create_api_routes() -> Router<AppState> {
             (StatusCode::OK, axum::response::Html(html)).into_response()
         }))
 }
-
-

@@ -1,5 +1,5 @@
 import { getDefaultConfig } from '@rainbow-me/rainbowkit'
-import { mainnet, sepolia, polygon, polygonMumbai, arbitrum, optimism } from 'wagmi/chains'
+import { mainnet, sepolia, polygon, polygonMumbai, arbitrum, optimism } from 'viem/chains'
 
 // 配置支持的链（保留禁用自动连接）
 export const config = getDefaultConfig({
