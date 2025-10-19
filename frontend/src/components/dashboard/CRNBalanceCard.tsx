@@ -4,6 +4,9 @@ import { mockCRNBalance } from '@/mock/data'
 import { TrendingUp } from 'lucide-react'
 
 const CRNBalanceCard = () => {
+  // 确保使用 mock 数据
+  console.log('🔍 CRNBalanceCard - mockCRNBalance:', mockCRNBalance)
+  
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -25,7 +28,7 @@ const CRNBalanceCard = () => {
             <CountUp end={mockCRNBalance.balance} decimals={2} /> CRN
           </div>
           <p className="text-sm text-gray-400">
-            数据贡献者奖励与被动收益
+            数据贡献者奖励与被动收益（Mock 数据展示）
           </p>
         </div>
 

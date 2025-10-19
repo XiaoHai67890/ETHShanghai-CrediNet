@@ -113,7 +113,7 @@ export const mockUsageRecords: UsageRecord[] = [
     appName: 'DeFi 协议 A',
     queryContent: '查询 C-Score',
     scope: '额度评估',
-    reward: 3.2,
+    reward: 42.5,
     status: 'authorized'
   },
   {
@@ -122,7 +122,7 @@ export const mockUsageRecords: UsageRecord[] = [
     appName: '招聘平台 B',
     queryContent: '教育 VC',
     scope: '简历验证',
-    reward: 1.1,
+    reward: 35.8,
     status: 'authorized'
   },
   {
@@ -131,7 +131,7 @@ export const mockUsageRecords: UsageRecord[] = [
     appName: '保险平台 C',
     queryContent: '行为数据',
     scope: '风险定价',
-    reward: 0.8,
+    reward: 28.3,
     status: 'authorized'
   },
   {
@@ -140,7 +140,7 @@ export const mockUsageRecords: UsageRecord[] = [
     appName: 'Social Graph',
     queryContent: 'Off-chain VC',
     scope: '社交网络构建',
-    reward: 2.5,
+    reward: 39.6,
     status: 'authorized'
   },
   {
@@ -149,7 +149,7 @@ export const mockUsageRecords: UsageRecord[] = [
     appName: 'DAO Platform',
     queryContent: '链上贡献记录',
     scope: '治理权重计算',
-    reward: 4.0,
+    reward: 36.2,
     status: 'authorized'
   }
 ]

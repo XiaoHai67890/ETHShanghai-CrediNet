@@ -1,16 +1,26 @@
 import { motion } from 'framer-motion'
 import { mockCreditScore } from '@/mock/data'
 
-const SBTBadgePreview = () => {
-  // 五个星球的配置（对应五维）
-  const planets = [
-    { key: 'keystone', name: '基石 K', icon: '/planets/keystone.svg', angle: 0 },
-    { key: 'ability', name: '能力 A', icon: '/planets/ability.svg', angle: 72 },
-    { key: 'wealth', name: '财富 F', icon: '/planets/wealth.svg', angle: 144 },
-    { key: 'health', name: '健康 H', icon: '/planets/health.svg', angle: 216 },
-    { key: 'behavior', name: '行为 B', icon: '/planets/behavior.svg', angle: 288 }
-  ]
+const ORBIT_RADIUS = 200
+const ORBIT_DURATION = 18
+const SPIN_DURATION = 12
+const PLANET_SIZE = 160
+const PLANET_HALF = PLANET_SIZE / 2
+const CONTAINER_SIZE = ORBIT_RADIUS * 2 + PLANET_SIZE
 
+const planets: Array<{
+  key: keyof typeof mockCreditScore.dimensions
+  label: string
+  icon: string
+}> = [
+  { key: 'keystone', label: '基石 K', icon: '/planets/keystone.svg' },
+  { key: 'ability', label: '能力 A', icon: '/planets/ability.svg' },
+  { key: 'finance', label: '财富 F', icon: '/planets/wealth.svg' },
+  { key: 'health', label: '健康 H', icon: '/planets/health.svg' },
+  { key: 'behavior', label: '行为 B', icon: '/planets/behavior.svg' },
+]
+
+const SBTBadgePreview = () => {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
@@ -24,75 +34,132 @@ const SBTBadgePreview = () => {
       </div>
 
       <div className="flex-1 flex items-center justify-center relative">
-        <div className="relative w-72 h-72 flex items-center justify-center">
-          {/* 轨道线 */}
-          <div className="absolute w-56 h-56 rounded-full border border-dashed border-slate-700/30" />
+        <div
+          className="relative flex items-center justify-center"
+          style={{ width: CONTAINER_SIZE, height: CONTAINER_SIZE }}
+        >
+          <div
+            className="absolute rounded-full border border-dashed border-slate-700/30"
+            style={{
+              width: ORBIT_RADIUS * 2,
+              height: ORBIT_RADIUS * 2,
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+            }}
+          />
 
-          {/* 中心C-Score */}
-          <motion.div
-            className="absolute z-10"
-            whileHover={{ scale: 1.1 }}
+          <div
+            className="absolute z-10 flex items-center justify-center -translate-x-1/2 -translate-y-1/2"
+            style={{ left: '50%', top: '50%' }}
           >
-            <div className="w-24 h-24 rounded-full bg-slate-800/90 backdrop-blur-xl border-2 border-slate-600 flex items-center justify-center shadow-xl">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-white mb-1">
+            <div className="w-40 h-40 rounded-full bg-slate-800/90 backdrop-blur-xl border-2 border-slate-600 flex items-center justify-center shadow-xl">
+              <div className="flex flex-col items-center justify-center h-full text-center leading-tight">
+                <div className="text-5xl font-bold text-white tracking-tight mb-1 leading-none">
                   {mockCreditScore.total}
                 </div>
-                <div className="text-[10px] text-gray-400 font-medium">C-Score</div>
+                <div className="text-sm text-gray-300 font-medium tracking-wide">C-Score</div>
               </div>
             </div>
-          </motion.div>
+          </div>
 
-          {/* 环绕的五个星球 */}
           {planets.map((planet, index) => {
-            const radius = 110
-            const angle = (planet.angle * Math.PI) / 180
-            const x = Math.cos(angle) * radius
-            const y = Math.sin(angle) * radius
-            
+            const startAngle = (360 / planets.length) * index
+            const dimensionValue = mockCreditScore.dimensions[planet.key]
+
             return (
-              <motion.div
+              <div
                 key={planet.key}
-                className="absolute w-16 h-16"
+                className="absolute"
                 style={{
-                  left: `calc(50% + ${x}px - 32px)`,
-                  top: `calc(50% + ${y}px - 32px)`,
+                  left: '50%',
+                  top: '50%',
+                  width: 0,
+                  height: 0,
                 }}
-                animate={{
-                  top: [`calc(50% + ${y}px - 32px)`, `calc(50% + ${y - 5}px - 32px)`, `calc(50% + ${y}px - 32px)`],
-                }}
-                transition={{
-                  duration: 3 + index * 0.5,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                }}
-                whileHover={{ scale: 1.2 }}
               >
-                <div className="relative group">
-                  <img 
-                    src={planet.icon} 
-                    alt={planet.name}
-                    className="w-16 h-16 drop-shadow-lg"
-                  />
-                  {/* Tooltip */}
-                  <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                    {planet.name}: {mockCreditScore.dimensions[planet.key as keyof typeof mockCreditScore.dimensions]}
-                  </div>
-                </div>
-              </motion.div>
+                <motion.div
+                  className="absolute"
+                  style={{
+                    width: 0,
+                    height: 0,
+                  }}
+                  animate={{ rotate: [startAngle, startAngle + 360] }}
+                  transition={{
+                    duration: ORBIT_DURATION,
+                    repeat: Infinity,
+                    ease: 'linear',
+                  }}
+                >
+                  <motion.div
+                    className="absolute"
+                    style={{
+                      left: ORBIT_RADIUS,
+                      top: 0,
+                      marginLeft: -PLANET_HALF,
+                      marginTop: -PLANET_HALF,
+                    }}
+                    initial={{ opacity: 0 }}
+                    animate={{
+                      opacity: 1,
+                      rotate: [-startAngle, -startAngle - 360],
+                    }}
+                    transition={{
+                      rotate: {
+                        duration: SPIN_DURATION,
+                        repeat: Infinity,
+                        ease: 'linear',
+                      },
+                      opacity: {
+                        duration: 0.5,
+                        delay: index * 0.1,
+                      },
+                    }}
+                  >
+                    <motion.div
+                      className="relative group cursor-pointer"
+                      whileHover={{ scale: 1.15 }}
+                    >
+                      <motion.img
+                        src={planet.icon}
+                        alt={planet.label}
+                        style={{
+                          width: PLANET_SIZE,
+                          height: PLANET_SIZE,
+                        }}
+                        className="drop-shadow-2xl"
+                        animate={{
+                          filter: [
+                            'drop-shadow(0 6px 12px rgba(0,0,0,0.35))',
+                            'drop-shadow(0 12px 24px rgba(0,0,0,0.55))',
+                            'drop-shadow(0 6px 12px rgba(0,0,0,0.35))',
+                          ],
+                        }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: 'easeInOut',
+                        }}
+                      />
+
+                      <div className="absolute -top-14 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white text-xs px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-slate-700 shadow-xl z-50">
+                        <div className="font-semibold">{planet.label}</div>
+                        <div className="text-emerald-400">{dimensionValue} 分</div>
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                </motion.div>
+              </div>
             )
           })}
         </div>
       </div>
 
       <div className="text-center mt-4">
-        <p className="text-xs text-gray-500">
-          五维星球随信用数据动态变化
-        </p>
+        <p className="text-xs text-gray-500">五维星球随信用数据动态变化</p>
       </div>
     </motion.div>
   )
 }
 
 export default SBTBadgePreview
-

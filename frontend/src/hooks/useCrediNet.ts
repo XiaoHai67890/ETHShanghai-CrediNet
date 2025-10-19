@@ -115,7 +115,14 @@ export function useCrediNet() {
           health: Number(creditInfo[0].health || 0),
           behavior: Number(creditInfo[0].behavior || 0),
         },
-        lastUpdated: new Date(Number(creditInfo[0].lastUpdate) * 1000).toISOString(),
+        // 如果链上时间戳为0或无效，使用当前时间
+        lastUpdated: (() => {
+          const timestamp = Number(creditInfo[0].lastUpdate)
+          if (timestamp === 0 || !timestamp) {
+            return new Date().toISOString()
+          }
+          return new Date(timestamp * 1000).toISOString()
+        })(),
       }
     : null
 
