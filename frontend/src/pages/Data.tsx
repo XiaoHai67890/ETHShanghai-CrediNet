@@ -1,11 +1,13 @@
 import { motion } from 'framer-motion'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import ToggleSwitch from '@/components/ui/ToggleSwitch'
 import { mockDataSources, mockDataAuthorizations, mockUsageRecords } from '@/mock/data'
 import type { DataSource, DataAuthorization } from '@/types'
 import { Database, Shield, TrendingUp, Settings } from 'lucide-react'
 
 const Data = () => {
+  const navigate = useNavigate()
   const [dataSources, setDataSources] = useState<DataSource[]>(mockDataSources)
   const [authorizations, setAuthorizations] = useState<DataAuthorization[]>(mockDataAuthorizations)
 
@@ -15,6 +17,14 @@ const Data = () => {
         ds.id === id ? { ...ds, connected: checked } : ds
       )
     )
+  }
+
+  const handleCardClick = (id: string) => {
+    if (id === 'worldid') {
+      navigate('/worldid')
+    } else if (id === 'self') {
+      navigate('/selfxyz')
+    }
   }
 
   const handleRevokeAuth = (appId: string) => {
@@ -61,7 +71,10 @@ const Data = () => {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 + index * 0.1 }}
-              className="p-5 rounded-xl bg-dark-card/50 border border-dark-border hover:border-primary-500/50 transition-all duration-300"
+              onClick={() => handleCardClick(source.id)}
+              className={`p-5 rounded-xl bg-dark-card/50 border border-dark-border hover:border-primary-500/50 transition-all duration-300 ${
+                source.id === 'worldid' || source.id === 'self' ? 'cursor-pointer hover:scale-105' : ''
+              }`}
             >
               <div className="text-center mb-4">
                 <div className="text-lg font-semibold text-white mb-2">
