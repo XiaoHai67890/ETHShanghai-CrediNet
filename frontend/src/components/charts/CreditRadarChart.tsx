@@ -65,9 +65,13 @@ const CreditRadarChart = ({ data: external }: Props) => {
       </div>
 
       {/* 雷达图 */}
-      <ResponsiveContainer width="100%" height={300}>
+      <ResponsiveContainer width="100%" height={350}>
         <RadarChart data={data}>
-          <PolarGrid stroke="#2d3250" />
+          <PolarGrid 
+            stroke="#3d4566" 
+            strokeWidth={1.5}
+            gridType="polygon"
+          />
           <PolarAngleAxis
             dataKey="dimension"
             tick={(props) => {
@@ -75,18 +79,62 @@ const CreditRadarChart = ({ data: external }: Props) => {
               const dim = data.find(d => d.dimension === payload.value)
               const IconComponent = dim?.icon
               
+              // 计算标签位置（向外推移）
+              const cx = 200 // 中心 x
+              const cy = 175 // 中心 y
+              const angle = Math.atan2(y - cy, x - cx)
+              const distance = 35 // 向外推移的距离
+              const labelX = x + Math.cos(angle) * distance
+              const labelY = y + Math.sin(angle) * distance
+              
               return (
-                <g transform={`translate(${x},${y})`}>
+                <g transform={`translate(${labelX},${labelY})`}>
+                  {/* 背景 */}
+                  <rect
+                    x={-40}
+                    y={-20}
+                    width={80}
+                    height={40}
+                    fill="rgba(30, 41, 59, 0.9)"
+                    stroke={dim?.color || '#9ca3af'}
+                    strokeWidth={2}
+                    rx={8}
+                  />
+                  {/* 图标 */}
                   {IconComponent && (
-                    <foreignObject x={-12} y={-12} width={24} height={24}>
-                      <div className="flex items-center justify-center">
+                    <foreignObject x={-35} y={-15} width={30} height={30}>
+                      <div className="flex items-center justify-center h-full">
                         <IconComponent 
-                          size={20} 
+                          size={18} 
                           style={{ color: dim?.color || '#9ca3af' }}
                         />
                       </div>
                     </foreignObject>
                   )}
+                  {/* 文字标签 */}
+                  <text
+                    x={5}
+                    y={0}
+                    fill="#fff"
+                    fontSize="13"
+                    fontWeight="600"
+                    textAnchor="start"
+                    dominantBaseline="middle"
+                  >
+                    {payload.value}
+                  </text>
+                  {/* 数值 */}
+                  <text
+                    x={0}
+                    y={15}
+                    fill={dim?.color || '#9ca3af'}
+                    fontSize="14"
+                    fontWeight="bold"
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                  >
+                    {dim?.value || 0}
+                  </text>
                 </g>
               )
             }}
@@ -94,18 +142,29 @@ const CreditRadarChart = ({ data: external }: Props) => {
           <Radar
             dataKey="value"
             stroke="#3b82f6"
-            fill="#3b82f6"
-            fillOpacity={0.6}
-            animationDuration={1000}
+            strokeWidth={3}
+            fill="url(#colorGradient)"
+            fillOpacity={0.65}
+            animationDuration={1500}
             animationBegin={0}
+            dot={{ fill: '#3b82f6', strokeWidth: 2, r: 5 }}
           />
+          <defs>
+            <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.8} />
+              <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0.6} />
+            </linearGradient>
+          </defs>
           <Tooltip
             contentStyle={{
-              backgroundColor: 'rgba(26, 30, 61, 0.95)',
-              border: '1px solid rgba(99, 102, 241, 0.3)',
+              backgroundColor: 'rgba(26, 30, 61, 0.98)',
+              border: '2px solid rgba(59, 130, 246, 0.5)',
               borderRadius: '12px',
-              color: '#fff'
+              color: '#fff',
+              padding: '12px 16px',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)'
             }}
+            formatter={(value: any) => [`${value} 分`, '得分']}
           />
         </RadarChart>
       </ResponsiveContainer>
