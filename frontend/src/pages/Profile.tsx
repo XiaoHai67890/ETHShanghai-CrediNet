@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { mockUser, mockCreditScore, mockSBTBadges, mockCRNBalance } from '@/mock/data'
+import { mockUser, mockCreditScore, mockSBTBadges, mockCRNBalance, getFormattedCRNBalance } from '@/mock/data'
 import { Shield, Award, TrendingUp } from 'lucide-react'
 
 const Profile = () => {
@@ -86,7 +86,7 @@ const Profile = () => {
           <div className="mb-6 p-4 rounded-xl bg-gradient-card">
             <div className="text-sm text-gray-400 mb-2">CRN 积分</div>
             <div className="text-4xl font-bold text-gradient mb-2">
-              {mockCRNBalance.balance.toFixed(2)}
+              {getFormattedCRNBalance(2)}
             </div>
             <div className="text-sm text-emerald-400">
               近 30 天变化：+{mockCRNBalance.change30d}

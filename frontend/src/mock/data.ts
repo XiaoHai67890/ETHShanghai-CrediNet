@@ -9,7 +9,26 @@ import type {
   DataAuthorization 
 } from '@/types'
 
-// Mock用户信息
+/**
+ * ====================================
+ * CrediNet Demo 数据中心
+ * ====================================
+ * 
+ * ⚠️ 重要说明：
+ * 1. 本文件是整个应用的唯一数据源
+ * 2. 所有页面和组件必须从此文件导入数据
+ * 3. 禁止在组件中硬编码任何数据
+ * 4. 修改数据时请确保所有引用处自动同步
+ * 
+ * ====================================
+ */
+
+// ========== 核心数据配置 ==========
+
+/**
+ * Mock用户信息
+ * 用于：Dashboard、Profile、Data 等所有页面
+ */
 export const mockUser: User = {
   did: 'did:cred:0x12...9a4',
   address: '0xA1B2...C3D4',
@@ -18,7 +37,11 @@ export const mockUser: User = {
   displayName: 'CrediNet User'
 }
 
-// Mock信用分数
+/**
+ * Mock信用分数（C-Score）
+ * 用于：Dashboard、Profile、雷达图等
+ * ⚠️ 五维数值必须保持一致
+ */
 export const mockCreditScore: CreditScore = {
   total: 782,
   change: 12,
@@ -32,7 +55,11 @@ export const mockCreditScore: CreditScore = {
   lastUpdated: '2025-10-10 14:20'
 }
 
-// Mock CRN余额
+/**
+ * Mock CRN余额
+ * 用于：Dashboard、Profile、CRNBalanceCard 等
+ * ⚠️ balance 值必须在所有地方保持一致
+ */
 export const mockCRNBalance: CRNBalance = {
   balance: 1234.56,
   change30d: 182.4,
@@ -40,7 +67,10 @@ export const mockCRNBalance: CRNBalance = {
   withdrawn: 265.44
 }
 
-// Mock数据源
+/**
+ * Mock数据源连接状态
+ * 用于：Dashboard、Data 页面的数据源管理
+ */
 export const mockDataSources: DataSource[] = [
   {
     id: 'worldid',
@@ -71,7 +101,11 @@ export const mockDataSources: DataSource[] = [
   }
 ]
 
-// Mock使用记录
+/**
+ * Mock使用与收益记录
+ * 用于：Dashboard、Data 页面的收益记录表格
+ * ⚠️ reward 数值应与 CRN 余额变化保持逻辑一致
+ */
 export const mockUsageRecords: UsageRecord[] = [
   {
     id: '1',
@@ -120,7 +154,10 @@ export const mockUsageRecords: UsageRecord[] = [
   }
 ]
 
-// Mock SBT勋章
+/**
+ * Mock SBT勋章
+ * 用于：Dashboard、Profile 页面的勋章展示
+ */
 export const mockSBTBadges: SBTBadge[] = [
   {
     id: '1',
@@ -145,7 +182,10 @@ export const mockSBTBadges: SBTBadge[] = [
   }
 ]
 
-// Mock生态应用
+/**
+ * Mock生态应用
+ * 用于：Dashboard、Marketplace 页面的应用展示
+ */
 export const mockEcoApps: EcoApp[] = [
   {
     id: '1',
@@ -213,7 +253,10 @@ export const mockEcoApps: EcoApp[] = [
   }
 ]
 
-// Mock数据授权
+/**
+ * Mock数据授权记录
+ * 用于：Data 页面的授权管理
+ */
 export const mockDataAuthorizations: DataAuthorization[] = [
   {
     appId: '1',
@@ -238,7 +281,11 @@ export const mockDataAuthorizations: DataAuthorization[] = [
   }
 ]
 
-// 信用维度配置
+/**
+ * 信用维度配置
+ * 用于：所有涉及五维模型的组件
+ * ⚠️ 此配置必须与 mockCreditScore.dimensions 的键名保持一致
+ */
 export const creditDimensions = [
   { key: 'keystone', name: '基石 K', color: '#8b5cf6', weight: '25%' },
   { key: 'ability', name: '能力 A', color: '#3b82f6', weight: '30%' },
@@ -247,7 +294,10 @@ export const creditDimensions = [
   { key: 'behavior', name: '行为 B', color: '#ef4444', weight: '10%' }
 ]
 
-// 应用分类
+/**
+ * 应用分类配置
+ * 用于：Marketplace 页面的分类筛选
+ */
 export const appCategories = [
   { id: 'all', name: '全部', icon: '🌐' },
   { id: 'defi', name: 'DeFi', icon: '💰' },
@@ -257,4 +307,72 @@ export const appCategories = [
   { id: 'dao', name: 'DAO', icon: '🏛️' },
   { id: 'kyc', name: 'KYC', icon: '🔐' }
 ]
+
+// ========== 数据统计与验证 ==========
+
+/**
+ * 数据统计信息
+ * 用于内部验证和展示
+ */
+export const dataStats = {
+  // CRN余额相关
+  crnBalance: mockCRNBalance.balance,
+  crnChange30d: mockCRNBalance.change30d,
+  crnEarned: mockCRNBalance.earned,
+  crnWithdrawn: mockCRNBalance.withdrawn,
+  
+  // 信用分数相关
+  creditTotal: mockCreditScore.total,
+  creditChange: mockCreditScore.change,
+  
+  // 统计数据
+  totalDataSources: mockDataSources.length,
+  connectedDataSources: mockDataSources.filter(ds => ds.connected).length,
+  totalSBTBadges: mockSBTBadges.length,
+  totalUsageRecords: mockUsageRecords.length,
+  totalEcoApps: mockEcoApps.length,
+  activeEcoApps: mockEcoApps.filter(app => app.status === 'active').length,
+  totalAuthorizations: mockDataAuthorizations.length,
+  activeAuthorizations: mockDataAuthorizations.filter(auth => auth.status === 'active').length,
+  
+  // 累计收益（从使用记录计算）
+  totalRewardsFromRecords: mockUsageRecords.reduce((sum, record) => sum + record.reward, 0)
+}
+
+/**
+ * 获取格式化的CRN余额
+ * 统一的格式化方法，确保所有地方显示一致
+ */
+export const getFormattedCRNBalance = (decimals: number = 2): string => {
+  return mockCRNBalance.balance.toFixed(decimals)
+}
+
+/**
+ * 获取格式化的信用分数
+ */
+export const getFormattedCreditScore = (): string => {
+  return mockCreditScore.total.toString()
+}
+
+/**
+ * 数据一致性验证
+ * 开发环境下自动检查数据一致性
+ */
+if (import.meta.env.DEV) {
+  // 验证收益记录总和是否合理
+  const totalRewards = dataStats.totalRewardsFromRecords
+  console.log('📊 CrediNet 数据统计:')
+  console.log('├─ CRN余额:', dataStats.crnBalance)
+  console.log('├─ 信用分数:', dataStats.creditTotal)
+  console.log('├─ 已连接数据源:', `${dataStats.connectedDataSources}/${dataStats.totalDataSources}`)
+  console.log('├─ SBT勋章数量:', dataStats.totalSBTBadges)
+  console.log('├─ 使用记录数量:', dataStats.totalUsageRecords)
+  console.log('├─ 累计收益记录:', totalRewards.toFixed(2), 'CRN')
+  console.log('└─ 活跃应用:', `${dataStats.activeEcoApps}/${dataStats.totalEcoApps}`)
+  
+  // 数据一致性提示
+  if (totalRewards > mockCRNBalance.earned) {
+    console.warn('⚠️ 警告: 累计收益记录超过了已赚取总额')
+  }
+}
 
