@@ -80,7 +80,7 @@
 
   /* 渐变边框卡片 */
   .gradient-border-card {
-    @apply relative rounded-2xl;
+    @apply relative rounded-2xl p-6;
     background: rgba(26, 30, 61, 0.8);
   }
 

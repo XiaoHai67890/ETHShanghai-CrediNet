@@ -17,7 +17,7 @@ const CRNBalanceCard = () => {
       <div className="relative">
         <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
           <TrendingUp size={20} className="text-emerald-400" />
-          我的 CRN 余额
+          我的 CRN 积分
         </h2>
 
         <div className="mb-4">
