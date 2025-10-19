@@ -9,6 +9,8 @@ import Docs from './pages/Docs'
 import Web3Demo from './pages/Web3Demo'
 import MintSBTExample from './pages/MintSBTExample'
 import NotFound from './pages/NotFound'
+import WorldID from './pages/WorldID'
+import SelfXyz from './pages/SelfXyz'
 
 function App() {
   return (
@@ -24,6 +26,8 @@ function App() {
           <Route path="/docs" element={<Docs />} />
           <Route path="/web3-demo" element={<Web3Demo />} />
           <Route path="/mint-sbt" element={<MintSBTExample />} />
+          <Route path="/worldid" element={<WorldID />} />
+          <Route path="/selfxyz" element={<SelfXyz />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Layout>

@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import ToggleSwitch from '@/components/ui/ToggleSwitch'
 import { mockDataSources } from '@/mock/data'
 import type { DataSource } from '@/types'
 
 const DataSourcesPanel = () => {
+  const navigate = useNavigate()
   const [dataSources, setDataSources] = useState<DataSource[]>(mockDataSources)
 
   const handleToggle = (id: string, checked: boolean) => {
@@ -19,6 +21,14 @@ const DataSourcesPanel = () => {
           : ds
       )
     )
+  }
+
+  const handleCardClick = (id: string) => {
+    if (id === 'worldid') {
+      navigate('/worldid')
+    } else if (id === 'self') {
+      navigate('/selfxyz')
+    }
   }
 
   return (
@@ -37,7 +47,10 @@ const DataSourcesPanel = () => {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.5 + index * 0.1 }}
-            className="flex flex-col items-center p-4 rounded-xl bg-dark-card/50 border border-dark-border hover:border-primary-500/50 transition-all duration-300"
+            onClick={() => handleCardClick(source.id)}
+            className={`flex flex-col items-center p-4 rounded-xl bg-dark-card/50 border border-dark-border hover:border-primary-500/50 transition-all duration-300 ${
+              source.id === 'worldid' || source.id === 'self' ? 'cursor-pointer hover:scale-105' : ''
+            }`}
           >
             <div className="text-sm font-semibold text-white mb-3">
               {source.name}
