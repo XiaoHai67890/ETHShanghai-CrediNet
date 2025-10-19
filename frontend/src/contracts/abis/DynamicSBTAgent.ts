@@ -1,4 +1,4 @@
-// Auto-generated from DynamicSBTAgent.sol
+// Auto-synced from Hardhat artifacts
 // DO NOT EDIT MANUALLY
 
 export const DynamicSBTAgentABI = [

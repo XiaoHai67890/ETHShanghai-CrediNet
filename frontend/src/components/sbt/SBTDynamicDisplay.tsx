@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import confetti from 'canvas-confetti'
 import { useDynamicSBT, getRarityColor, getRarityIcon } from '@/hooks/useDynamicSBT'
-import { CreditRadarChart } from '@/components/charts/CreditRadarChart'
+import CreditRadarChart from '@/components/charts/CreditRadarChart'
 import type { Address } from 'viem'
 
 interface SBTDynamicDisplayProps {
@@ -118,7 +118,7 @@ export const SBTDynamicDisplay = ({ userAddress }: SBTDynamicDisplayProps) => {
           data={{
             keystone: score.keystone,
             ability: score.ability,
-            wealth: score.wealth,
+            finance: score.wealth,
             health: score.health,
             behavior: score.behavior,
           }}

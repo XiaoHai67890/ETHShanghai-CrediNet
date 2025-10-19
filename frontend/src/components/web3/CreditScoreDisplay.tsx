@@ -9,10 +9,16 @@ import { RefreshCw } from 'lucide-react'
 
 const CreditScoreDisplay = () => {
   const { isConnected } = useAccount()
-  const { creditScore, refetchScore, refetchDimensions } = useCrediNet()
+  const { creditScore, refetchCreditInfo, isLoading, error } = useCrediNet()
 
   const handleRefresh = async () => {
-    await Promise.all([refetchScore(), refetchDimensions()])
+    console.log('🔄 手动刷新信用数据...')
+    try {
+      const result = await refetchCreditInfo()
+      console.log('✅ 刷新结果:', result)
+    } catch (err) {
+      console.error('❌ 刷新失败:', err)
+    }
   }
 
   if (!isConnected) {
@@ -23,12 +29,50 @@ const CreditScoreDisplay = () => {
     )
   }
 
-  if (!creditScore) {
+  if (isLoading) {
     return (
       <div className="glass-card p-6">
         <div className="flex items-center justify-center gap-2">
           <div className="w-5 h-5 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin" />
           <span className="text-gray-400">加载信用数据中...</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="glass-card p-6">
+        <div className="text-center">
+          <div className="text-red-400 mb-2">❌ 加载信用数据失败</div>
+          <div className="text-sm text-gray-400 mb-4">
+            错误信息: {error.message || '未知错误'}
+          </div>
+          <button
+            onClick={handleRefresh}
+            className="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg transition-colors"
+          >
+            重试
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (!creditScore) {
+    return (
+      <div className="glass-card p-6">
+        <div className="text-center">
+          <div className="text-yellow-400 mb-2">⚠️ 暂无信用数据</div>
+          <div className="text-sm text-gray-400 mb-4">
+            您的钱包地址可能还没有信用评分记录
+          </div>
+          <button
+            onClick={handleRefresh}
+            className="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg transition-colors"
+          >
+            刷新检查
+          </button>
         </div>
       </div>
     )

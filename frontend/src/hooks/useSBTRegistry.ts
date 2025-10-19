@@ -1,4 +1,4 @@
-import { useAccount, useReadContract } from 'wagmi'
+import { useAccount } from 'wagmi'
 import { useEffect, useMemo, useState } from 'react'
 import { readContract } from 'wagmi/actions'
 import { zeroAddress } from 'viem'
@@ -35,16 +35,41 @@ export function useSBTRegistry() {
 
   const hasContract = useMemo(() => !!contractAddress && contractAddress !== zeroAddress, [contractAddress])
 
-  // 查询用户的所有 SBT Token IDs
-  const { data: tokenIds, refetch: refetchTokenIds } = useReadContract({
-    address: hasContract ? (contractAddress as `0x${string}`) : undefined,
-    abi: SBTRegistryABI,
-    functionName: 'getUserSBTs',
-    args: address ? [address] : undefined,
-    query: {
-      enabled: !!address && hasContract,
-    },
-  })
+  // 通过 balanceOf + tokenOfOwnerByIndex 枚举 tokenIds（兼容升级与非升级版本）
+  const [tokenIds, setTokenIds] = useState<bigint[] | undefined>(undefined)
+  useEffect(() => {
+    if (!hasContract || !address) {
+      setTokenIds(undefined)
+      return
+    }
+    let cancelled = false
+    const load = async () => {
+      try {
+        const balance = await readContract(wagmiConfig, {
+          address: contractAddress as `0x${string}`,
+          abi: SBTRegistryABI,
+          functionName: 'balanceOf',
+          args: [address as `0x${string}`],
+        }) as bigint
+        const ids: bigint[] = []
+        for (let i = 0n; i < balance; i++) {
+          const id = await readContract(wagmiConfig, {
+            address: contractAddress as `0x${string}`,
+            abi: SBTRegistryABI,
+            functionName: 'tokenOfOwnerByIndex',
+            args: [address as `0x${string}`, i],
+          }) as bigint
+          ids.push(id)
+        }
+        if (!cancelled) setTokenIds(ids)
+      } catch (e) {
+        console.error('读取 SBT 列表失败', e)
+        if (!cancelled) setTokenIds([])
+      }
+    }
+    void load()
+    return () => { cancelled = true }
+  }, [hasContract, contractAddress, address])
 
   // 当获取到 tokenIds 后，查询每个 token 的元数据
   useEffect(() => {
@@ -123,7 +148,7 @@ export function useSBTRegistry() {
     badges,
     
     // 刷新
-    refetchTokenIds,
+    refetchTokenIds: async () => {},
   }
 }
 

@@ -1,6 +1,6 @@
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import { getContractAddresses } from '../contracts/addresses'
-import { CrediNetCoreABI } from '../contracts/abis'
+import { DynamicSBTAgentABI } from '../contracts/abis'
 import { useState, useEffect } from 'react'
 import { zeroAddress } from 'viem'
 import type { CreditScore } from '../types'
@@ -14,7 +14,10 @@ export function useCrediNet() {
   const [contractAddress, setContractAddress] = useState<string>('')
 
   useEffect(() => {
+    console.log('🔍 useCrediNet - 链ID变化:', chainId)
+    
     if (!chainId) {
+      console.log('❌ 没有链ID，清空合约地址')
       setContractAddress('')
       return
     }
@@ -22,96 +25,97 @@ export function useCrediNet() {
     const addresses = getContractAddresses(chainId)
     const candidate = addresses.CrediNetCore
 
+    console.log('📋 获取到的地址配置:', addresses)
+    console.log('🎯 使用的合约地址:', candidate)
+
     if (!candidate || candidate === zeroAddress) {
+      console.log('❌ 合约地址无效，清空地址')
       setContractAddress('')
       return
     }
 
+    console.log('✅ 设置合约地址:', candidate)
     setContractAddress(candidate)
   }, [chainId])
 
-  // 查询用户 C-Score
-  const { data: creditScore, refetch: refetchScore } = useReadContract({
+  // 查询用户完整信用信息（使用 DynamicSBTAgent）
+  const { data: creditInfo, refetch: refetchCreditInfo, error: creditInfoError, isLoading: creditInfoLoading } = useReadContract({
     address: contractAddress as `0x${string}`,
-    abi: CrediNetCoreABI,
-    functionName: 'getCreditScore',
+    abi: DynamicSBTAgentABI,
+    functionName: 'getUserCreditInfo',
+    args: address ? [address] : undefined,
+    query: {
+      enabled: !!address && !!contractAddress,
+      refetchInterval: 30000, // 每30秒自动刷新
+    },
+  })
+
+  // 添加调试日志
+  useEffect(() => {
+    console.log('📊 信用信息查询状态:')
+    console.log('  - 用户地址:', address)
+    console.log('  - 合约地址:', contractAddress)
+    console.log('  - 查询启用:', !!address && !!contractAddress)
+    console.log('  - 加载状态:', creditInfoLoading)
+    console.log('  - 原始数据:', creditInfo)
+    console.log('  - 错误信息:', creditInfoError)
+  }, [address, contractAddress, creditInfo, creditInfoLoading, creditInfoError])
+
+  // 查询用户 SBT TokenId
+  const { data: userTokenId } = useReadContract({
+    address: contractAddress as `0x${string}`,
+    abi: DynamicSBTAgentABI,
+    functionName: 'userTokenIds',
     args: address ? [address] : undefined,
     query: {
       enabled: !!address && !!contractAddress,
     },
   })
 
-  // 查询用户 DID
-  const { data: userDID } = useReadContract({
-    address: contractAddress as `0x${string}`,
-    abi: CrediNetCoreABI,
-    functionName: 'getUserDID',
-    args: address ? [address] : undefined,
-    query: {
-      enabled: !!address && !!contractAddress,
-    },
+  // 更新信用评分（需要 Oracle 权限）
+  const { writeContract: updateScore, data: updateHash } = useWriteContract()
+  const { isLoading: isUpdating, isSuccess: isUpdateSuccess } = useWaitForTransactionReceipt({
+    hash: updateHash,
   })
 
-  // 查询五维信用数据
-  const { data: dimensions, refetch: refetchDimensions } = useReadContract({
-    address: contractAddress as `0x${string}`,
-    abi: CrediNetCoreABI,
-    functionName: 'getCreditDimensions',
-    args: address ? [address] : undefined,
-    query: {
-      enabled: !!address && !!contractAddress,
-    },
-  })
+  // 手动更新评分
+  const handleUpdateScore = async (
+    keystone: number,
+    ability: number,
+    wealth: number,
+    health: number,
+    behavior: number
+  ) => {
+    if (!contractAddress || !address) return
 
-  // 授权应用
-  const { writeContract: authorizeApp, data: authorizeHash } = useWriteContract()
-  const { isLoading: isAuthorizing, isSuccess: isAuthorizeSuccess } = useWaitForTransactionReceipt({
-    hash: authorizeHash,
-  })
-
-  // 撤销授权
-  const { writeContract: revokeApp, data: revokeHash } = useWriteContract()
-  const { isLoading: isRevoking, isSuccess: isRevokeSuccess } = useWaitForTransactionReceipt({
-    hash: revokeHash,
-  })
-
-  // 授权应用访问数据
-  const handleAuthorizeApp = async (appAddress: string, dimensionIds: number[]) => {
-    if (!contractAddress) return
-
-    authorizeApp({
+    updateScore({
       address: contractAddress as `0x${string}`,
-      abi: CrediNetCoreABI,
-      functionName: 'authorizeApp',
-      args: [appAddress as `0x${string}`, dimensionIds.map(id => BigInt(id))],
-    })
-  }
-
-  // 撤销应用授权
-  const handleRevokeApp = async (appAddress: string) => {
-    if (!contractAddress) return
-
-    revokeApp({
-      address: contractAddress as `0x${string}`,
-      abi: CrediNetCoreABI,
-      functionName: 'revokeAppAuthorization',
-      args: [appAddress as `0x${string}`],
+      abi: DynamicSBTAgentABI,
+      functionName: 'updateCreditScore',
+      args: [
+        address as `0x${string}`,
+        keystone,
+        ability,
+        wealth,
+        health,
+        behavior,
+      ],
     })
   }
 
   // 格式化信用数据
-  const formattedCreditScore: CreditScore | null = dimensions
+  const formattedCreditScore: CreditScore | null = creditInfo
     ? {
-        total: Number(creditScore || 0),
+        total: Number(creditInfo[1] || 0), // totalScore
         change: 0, // 需要从历史数据计算
         dimensions: {
-          keystone: Number((dimensions as any).keystone || 0),
-          ability: Number((dimensions as any).ability || 0),
-          finance: Number((dimensions as any).finance || 0),
-          health: Number((dimensions as any).health || 0),
-          behavior: Number((dimensions as any).behavior || 0),
+          keystone: Number(creditInfo[0].keystone || 0),
+          ability: Number(creditInfo[0].ability || 0),
+          finance: Number(creditInfo[0].wealth || 0), // wealth 对应 finance
+          health: Number(creditInfo[0].health || 0),
+          behavior: Number(creditInfo[0].behavior || 0),
         },
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: new Date(Number(creditInfo[0].lastUpdate) * 1000).toISOString(),
       }
     : null
 
@@ -119,20 +123,20 @@ export function useCrediNet() {
     // 数据
     address,
     chainId,
-    userDID,
+    userTokenId,
     creditScore: formattedCreditScore,
     
-    // 授权操作
-    authorizeApp: handleAuthorizeApp,
-    revokeApp: handleRevokeApp,
-    isAuthorizing,
-    isAuthorizeSuccess,
-    isRevoking,
-    isRevokeSuccess,
+    // 状态信息
+    isLoading: creditInfoLoading,
+    error: creditInfoError,
+    
+    // 评分更新操作
+    updateScore: handleUpdateScore,
+    isUpdating,
+    isUpdateSuccess,
     
     // 刷新数据
-    refetchScore,
-    refetchDimensions,
+    refetchCreditInfo,
   }
 }
 

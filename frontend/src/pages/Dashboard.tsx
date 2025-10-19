@@ -6,11 +6,17 @@ import DataSourcesPanel from '@/components/dashboard/DataSourcesPanel'
 import CRNBalanceCard from '@/components/dashboard/CRNBalanceCard'
 import EcoAppsGrid from '@/components/dashboard/EcoAppsGrid'
 import UsageRecordsTable from '@/components/dashboard/UsageRecordsTable'
+import CreditScoreDisplay from '@/components/web3/CreditScoreDisplay'
+import SBTDynamicDisplay from '@/components/sbt/SBTDynamicDisplay'
+import { useAccount } from 'wagmi'
 import { Copy } from 'lucide-react'
 
 const Dashboard = () => {
+  const { isConnected, address } = useAccount()
+  
   const handleCopyDID = () => {
-    navigator.clipboard.writeText(mockUser.did)
+    const did = isConnected ? `did:credinet:${address}` : mockUser.did
+    navigator.clipboard.writeText(did)
     // TODO: 添加Toast提示
     alert('DID已复制到剪贴板')
   }
@@ -29,7 +35,7 @@ const Dashboard = () => {
             <div className="flex items-center gap-3 mb-2">
               <h1 className="text-2xl font-bold text-white flex items-center gap-2">
                 <span className="text-blue-400">🔷</span>
-                DID: {mockUser.did}
+                DID: {isConnected ? `did:credinet:${address}` : mockUser.did}
               </h1>
               <button
                 onClick={handleCopyDID}
@@ -40,7 +46,7 @@ const Dashboard = () => {
               </button>
             </div>
             <div className="text-sm text-gray-400">
-              <span>Address: {mockUser.address}</span>
+              <span>Address: {isConnected ? address : mockUser.address}</span>
               <span className="mx-2">•</span>
               <span>Last update: {mockUser.lastSync}</span>
             </div>
@@ -57,11 +63,21 @@ const Dashboard = () => {
         </div>
       </motion.div>
 
-      {/* 信用光谱和SBT勋章 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <CreditRadarChart />
-        <SBTBadgePreview />
-      </div>
+      {/* 合约数据展示 */}
+      {isConnected ? (
+        <div className="space-y-6">
+          {/* 动态SBT展示 */}
+          <SBTDynamicDisplay />
+          
+          {/* 信用评分展示 */}
+          <CreditScoreDisplay />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <CreditRadarChart />
+          <SBTBadgePreview />
+        </div>
+      )}
 
       {/* CRN余额 */}
       <CRNBalanceCard />

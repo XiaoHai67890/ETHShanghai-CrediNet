@@ -20,7 +20,7 @@ export const MAINNET_ADDRESSES: ContractAddresses = {
 
 // Sepolia 测试网地址
 export const SEPOLIA_ADDRESSES: ContractAddresses = {
-  CrediNetCore: '0x7CE2fbEfDF5dc7E43477816bfD2e89d5b26Cff38', // TODO: 替换为测试网部署的合约地址
+  CrediNetCore: '0x7CE2fbEfDF5dc7E43477816bfD2e89d5b26Cff38', // 使用 DynamicSBTAgent 作为核心评分合约
   CRNToken: '0x0000000000000000000000000000000000000000',
   SBTRegistry: '0xec261261c83B76549181909ec09995e56Ca549E7',
   DataMarketplace: '0x0000000000000000000000000000000000000000',
@@ -36,15 +36,6 @@ export const POLYGON_ADDRESSES: ContractAddresses = {
   DynamicSBTAgent: '0x0000000000000000000000000000000000000000',
 }
 
-// 本地地址
-export const LOCALHOST_ADDRESSES: ContractAddresses = {
-  CrediNetCore: '0x0000000000000000000000000000000000000000', 
-  CRNToken: '0x0000000000000000000000000000000000000000',
-  SBTRegistry: '0x5FbDB2315678afecb367f032d93F642f64180aa3', 
-  DataMarketplace: '0x0000000000000000000000000000000000000000',
-  DynamicSBTAgent: '0x0000000000000000000000000000000000000000',
-}
-
 // 根据链 ID 获取合约地址
 export const getContractAddresses = (chainId: number): ContractAddresses => {
   switch (chainId) {
@@ -56,8 +47,6 @@ export const getContractAddresses = (chainId: number): ContractAddresses => {
       return POLYGON_ADDRESSES
     case 80001: // Polygon Mumbai
       return SEPOLIA_ADDRESSES // 使用测试网地址
-    case 31337: // Hardhat 本地网络 chainId
-      return LOCALHOST_ADDRESSES;
     default:
       return SEPOLIA_ADDRESSES // 默认使用测试网地址
   }

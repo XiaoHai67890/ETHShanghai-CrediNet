@@ -1,13 +1,44 @@
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, Tooltip } from 'recharts'
 import { motion } from 'framer-motion'
 import { mockCreditScore, creditDimensions } from '@/mock/data'
+import { Shield, Zap, DollarSign, Heart, Activity } from 'lucide-react'
 
-const CreditRadarChart = () => {
+type RadarDataInput = {
+  keystone: number
+  ability: number
+  finance: number
+  health: number
+  behavior: number
+}
+
+interface Props {
+  data?: RadarDataInput
+}
+
+const CreditRadarChart = ({ data: external }: Props) => {
+  const source = external
+    ? {
+        total: 0,
+        change: 0,
+        dimensions: external,
+      }
+    : mockCreditScore
+
+  // 图标映射
+  const iconMap = {
+    keystone: Shield,
+    ability: Zap,
+    finance: DollarSign,
+    health: Heart,
+    behavior: Activity
+  }
+
   const data = creditDimensions.map((dim) => ({
     dimension: dim.name,
-    value: mockCreditScore.dimensions[dim.key as keyof typeof mockCreditScore.dimensions],
+    value: source.dimensions[dim.key as keyof typeof source.dimensions],
     fullMark: 100,
-    color: dim.color
+    color: dim.color,
+    icon: iconMap[dim.key as keyof typeof iconMap]
   }))
 
   return (
@@ -25,10 +56,10 @@ const CreditRadarChart = () => {
         </div>
         <div className="text-right">
           <div className="text-4xl font-bold text-gradient">
-            {mockCreditScore.total}
+            {source.total}
           </div>
           <div className="text-sm text-gray-400 mt-1">
-            <span className="text-emerald-400">▲ {mockCreditScore.change}</span>
+            <span className="text-emerald-400">▲ {source.change}</span>
           </div>
         </div>
       </div>
@@ -39,7 +70,26 @@ const CreditRadarChart = () => {
           <PolarGrid stroke="#2d3250" />
           <PolarAngleAxis
             dataKey="dimension"
-            tick={{ fill: '#9ca3af', fontSize: 13, fontWeight: 500 }}
+            tick={(props) => {
+              const { x, y, payload } = props
+              const dim = data.find(d => d.dimension === payload.value)
+              const IconComponent = dim?.icon
+              
+              return (
+                <g transform={`translate(${x},${y})`}>
+                  {IconComponent && (
+                    <foreignObject x={-12} y={-12} width={24} height={24}>
+                      <div className="flex items-center justify-center">
+                        <IconComponent 
+                          size={20} 
+                          style={{ color: dim?.color || '#9ca3af' }}
+                        />
+                      </div>
+                    </foreignObject>
+                  )}
+                </g>
+              )
+            }}
           />
           <Radar
             dataKey="value"
@@ -62,26 +112,32 @@ const CreditRadarChart = () => {
 
       {/* 维度详情 */}
       <div className="grid grid-cols-5 gap-4 mt-6">
-        {data.map((dim, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 + index * 0.1 }}
-            className="text-center"
-          >
-            <div
-              className="w-14 h-14 rounded-full mx-auto mb-2 flex items-center justify-center text-white font-bold text-lg shadow-lg"
-              style={{
-                backgroundColor: dim.color,
-                boxShadow: `0 4px 20px ${dim.color}40`
-              }}
+        {data.map((dim, index) => {
+          const IconComponent = dim.icon
+          return (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 + index * 0.1 }}
+              className="text-center"
             >
-              {dim.value}
-            </div>
-            <div className="text-xs text-gray-400 font-medium">{dim.dimension}</div>
-          </motion.div>
-        ))}
+              <div
+                className="w-16 h-16 rounded-full mx-auto mb-2 flex items-center justify-center text-white shadow-lg relative group hover:scale-110 transition-transform duration-200"
+                style={{
+                  backgroundColor: dim.color,
+                  boxShadow: `0 4px 20px ${dim.color}40`
+                }}
+              >
+                <IconComponent size={28} className="group-hover:scale-110 transition-transform duration-200" />
+                <div className="absolute -top-1 -right-1 w-7 h-7 bg-white/90 rounded-full flex items-center justify-center border-2 border-gray-800">
+                  <span className="text-xs font-bold text-gray-800">{dim.value}</span>
+                </div>
+              </div>
+              <div className="text-xs text-gray-400 font-medium">{dim.dimension}</div>
+            </motion.div>
+          )
+        })}
       </div>
     </motion.div>
   )
