@@ -16,9 +16,12 @@ interface Props {
 }
 
 const CreditRadarChart = ({ data: external }: Props) => {
-  const source = external
+  // 检查是否所有维度数据都是0或接近0
+  const hasValidData = external && Object.values(external).some(val => val > 0)
+  
+  const source = hasValidData
     ? {
-        total: 0,
+        total: Object.values(external).reduce((a, b) => a + b, 0),
         change: 0,
         dimensions: external,
       }
