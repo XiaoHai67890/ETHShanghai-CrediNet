@@ -1,1 +1,1 @@
-CrediNet MVP
+ETH上海-CreiNet
