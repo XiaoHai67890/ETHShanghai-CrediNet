@@ -11,6 +11,7 @@ import MintSBTExample from './pages/MintSBTExample'
 import NotFound from './pages/NotFound'
 import WorldID from './pages/WorldID'
 import SelfXyz from './pages/SelfXyz'
+import StarBorderDemo from './pages/StarBorderDemo'
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
           <Route path="/mint-sbt" element={<MintSBTExample />} />
           <Route path="/worldid" element={<WorldID />} />
           <Route path="/selfxyz" element={<SelfXyz />} />
+          <Route path="/star-demo" element={<StarBorderDemo />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Layout>

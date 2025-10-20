@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { useSBTMint } from '@/hooks/useSBTMint'
 import { useCrediNet } from '@/hooks/useCrediNet'
 import SBTMintAnimation from '@/components/animations/SBTMintAnimation'
+import { StarBorder } from '@/components/StarBorder'
 
 /**
  * SBT 铸造示例页面
@@ -90,11 +91,12 @@ const MintSBTExample = () => {
 
         <div className="grid md:grid-cols-2 gap-8">
           {/* 左侧：当前信用数据 */}
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="glass-card p-6"
-          >
+          <StarBorder starCount={8} speed={0.5} starColor="#a78bfa" glowColor="#8b5cf6">
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="glass-card p-6"
+            >
             <h2 className="text-2xl font-bold text-white mb-4">当前信用数据</h2>
             {creditScore ? (
               <div className="space-y-4">
@@ -138,14 +140,16 @@ const MintSBTExample = () => {
             ) : (
               <div className="text-center text-gray-400 py-8">请先连接钱包</div>
             )}
-          </motion.div>
+            </motion.div>
+          </StarBorder>
 
           {/* 右侧：铸造操作 */}
-          <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="glass-card p-6"
-          >
+          <StarBorder starCount={10} speed={0.6} starColor="#ec4899" glowColor="#db2777">
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="glass-card p-6"
+            >
             <h2 className="text-2xl font-bold text-white mb-2">铸造 SBT</h2>
             <div className="text-xs text-gray-400 mb-4">
               铸造权限：{hasMinterRole ? <span className="text-emerald-400">MINTER_ROLE</span> : <span className="text-yellow-400">需要 issuer 签名</span>}
@@ -235,7 +239,8 @@ const MintSBTExample = () => {
                 </ul>
               </div>
             </div>
-          </motion.div>
+            </motion.div>
+          </StarBorder>
         </div>
       </div>
 
