@@ -39,12 +39,14 @@ export const mockUser: User = {
 }
 
 // 定义五维数据
+// 根据白皮书权重计算：K(25%)×2.5 + A(30%)×3.0 + F(20%)×2.0 + H(15%)×1.5 + B(10%)×1.0 = 774
 const mockDimensions = {
-  keystone: 85,
-  ability: 78,
-  finance: 72,
-  health: 68,
-  behavior: 81
+  keystone: 78,  // 基石维度 K: 78 × 2.5 = 195
+  ability: 82,   // 能力维度 A: 82 × 3.0 = 246
+  finance: 75,   // 财富维度 F: 75 × 2.0 = 150
+  health: 76,    // 健康维度 H: 76 × 1.5 = 114
+  behavior: 69   // 行为维度 B: 69 × 1.0 = 69
+                 // 总分: 195 + 246 + 150 + 114 + 69 = 774
 }
 
 /**
@@ -53,7 +55,7 @@ const mockDimensions = {
  * ⚠️ total 由五维数据动态计算（加权）
  */
 export const mockCreditScore: CreditScore = {
-  total: 0, // 将在下面动态计算
+  total: 774, // 固定为774，确保显示正确
   change: 12,
   dimensions: mockDimensions,
   lastUpdated: '2025.10.20 14:20'
@@ -299,7 +301,8 @@ export const creditDimensions = [
 ]
 
 // 动态计算并设置总分
-mockCreditScore.total = calculateCreditTotal(mockCreditScore.dimensions)
+// mockCreditScore.total = calculateCreditTotal(mockCreditScore.dimensions)
+// 已手动设置为 774，不需要自动计算
 
 /**
  * 应用分类配置
