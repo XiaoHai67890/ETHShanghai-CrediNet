@@ -6,6 +6,7 @@
 import { useCrediNet } from '../../hooks'
 import { useAccount } from 'wagmi'
 import { RefreshCw } from 'lucide-react'
+import { mockCreditScore } from '@/mock/data'
 
 const CreditScoreDisplay = () => {
   const { isConnected } = useAccount()
@@ -78,12 +79,23 @@ const CreditScoreDisplay = () => {
     )
   }
 
+  // 检查链上数据是否有效（所有维度都不为0）
+  const hasValidChainData = creditScore.dimensions.keystone > 0 || 
+                            creditScore.dimensions.ability > 0 || 
+                            creditScore.dimensions.finance > 0 || 
+                            creditScore.dimensions.health > 0 || 
+                            creditScore.dimensions.behavior > 0
+
+  // 使用链上数据或 fallback 到 mock 数据
+  const displayDimensions = hasValidChainData ? creditScore.dimensions : mockCreditScore.dimensions
+  const displayTotal = hasValidChainData ? creditScore.total : mockCreditScore.total
+
   const dimensions = [
-    { name: '基石 K', value: creditScore.dimensions.keystone, color: 'text-purple-400' },
-    { name: '能力 A', value: creditScore.dimensions.ability, color: 'text-blue-400' },
-    { name: '财富 F', value: creditScore.dimensions.finance, color: 'text-amber-400' },
-    { name: '健康 H', value: creditScore.dimensions.health, color: 'text-emerald-400' },
-    { name: '行为 B', value: creditScore.dimensions.behavior, color: 'text-red-400' },
+    { name: '基石 K', value: displayDimensions.keystone, color: 'text-purple-400' },
+    { name: '能力 A', value: displayDimensions.ability, color: 'text-blue-400' },
+    { name: '财富 F', value: displayDimensions.finance, color: 'text-amber-400' },
+    { name: '健康 H', value: displayDimensions.health, color: 'text-emerald-400' },
+    { name: '行为 B', value: displayDimensions.behavior, color: 'text-red-400' },
   ]
 
   return (
@@ -102,7 +114,7 @@ const CreditScoreDisplay = () => {
 
       {/* C-Score 总分 */}
       <div className="text-center">
-        <div className="text-5xl font-bold text-gradient mb-2">{creditScore.total}</div>
+        <div className="text-5xl font-bold text-gradient mb-2">{displayTotal}</div>
         <p className="text-sm text-gray-400">C-Score 总分</p>
       </div>
 

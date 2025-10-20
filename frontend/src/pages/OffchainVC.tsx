@@ -16,7 +16,7 @@ interface Credential {
 
 const OffchainVC = () => {
   const navigate = useNavigate()
-  const { isConnected, address } = useAccount()
+  const { isConnected } = useAccount()
   const [isUploading, setIsUploading] = useState(false)
   const [credentials, setCredentials] = useState<Credential[]>([
     {

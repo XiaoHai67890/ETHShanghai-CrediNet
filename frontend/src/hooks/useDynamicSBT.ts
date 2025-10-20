@@ -4,6 +4,7 @@ import type { Address } from 'viem'
 import { zeroAddress } from 'viem'
 import { getContractAddresses } from '../contracts/addresses'
 import { DynamicSBTAgentABI } from '../contracts/abis'
+import { calculateCreditTotal } from '@/utils/credit'
 
 /**
  * 五维信用评分类型
@@ -118,20 +119,36 @@ export function useDynamicSBT(userAddress?: Address) {
   })
 
   // 解析信用信息
-  const parsedCreditInfo: CreditInfo | null = creditInfo ? {
-    score: {
-      keystone: creditInfo[0].keystone,
-      ability: creditInfo[0].ability,
-      wealth: creditInfo[0].wealth,
-      health: creditInfo[0].health,
-      behavior: creditInfo[0].behavior,
-      lastUpdate: Number(creditInfo[0].lastUpdate),
-      updateCount: Number(creditInfo[0].updateCount),
-    },
-    totalScore: creditInfo[1],
-    rarity: getRarityName(creditInfo[2]),
-    tokenId: creditInfo[3],
-  } : null
+  const normalizedScore = creditInfo
+    ? {
+        keystone: Number(creditInfo[0].keystone ?? 0),
+        ability: Number(creditInfo[0].ability ?? 0),
+        wealth: Number(creditInfo[0].wealth ?? 0),
+        health: Number(creditInfo[0].health ?? 0),
+        behavior: Number(creditInfo[0].behavior ?? 0),
+        lastUpdate: Number(creditInfo[0].lastUpdate ?? 0),
+        updateCount: Number(creditInfo[0].updateCount ?? 0),
+      }
+    : null
+
+  const totalScore = normalizedScore
+    ? calculateCreditTotal({
+        keystone: normalizedScore.keystone,
+        ability: normalizedScore.ability,
+        finance: normalizedScore.wealth,
+        health: normalizedScore.health,
+        behavior: normalizedScore.behavior,
+      })
+    : 0
+
+  const parsedCreditInfo: CreditInfo | null = creditInfo && normalizedScore
+    ? {
+        score: normalizedScore,
+        totalScore,
+        rarity: getRarityName(Number(creditInfo[2] ?? 0)),
+        tokenId: creditInfo[3] as bigint,
+      }
+    : null
 
   // 初始化 previousRarity
   useEffect(() => {

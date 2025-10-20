@@ -4,6 +4,7 @@ import { DynamicSBTAgentABI } from '../contracts/abis'
 import { useState, useEffect } from 'react'
 import { zeroAddress } from 'viem'
 import type { CreditScore } from '../types'
+import { calculateCreditTotal } from '@/utils/credit'
 
 /**
  * CrediNet 核心合约交互 Hook
@@ -104,21 +105,28 @@ export function useCrediNet() {
   }
 
   // 格式化信用数据
-  const formattedCreditScore: CreditScore | null = creditInfo
+  const normalizedDimensions = creditInfo
     ? {
-        total: Number(creditInfo[1] || 0), // totalScore
-        change: 0, // 需要从历史数据计算
-        dimensions: {
-          keystone: Number(creditInfo[0].keystone || 0),
-          ability: Number(creditInfo[0].ability || 0),
-          finance: Number(creditInfo[0].wealth || 0), // wealth 对应 finance
-          health: Number(creditInfo[0].health || 0),
-          behavior: Number(creditInfo[0].behavior || 0),
-        },
-        // 如果链上时间戳为0或无效，使用当前时间
+        keystone: Number(creditInfo[0].keystone ?? 0),
+        ability: Number(creditInfo[0].ability ?? 0),
+        finance: Number(creditInfo[0].wealth ?? 0), // wealth 对应 finance
+        health: Number(creditInfo[0].health ?? 0),
+        behavior: Number(creditInfo[0].behavior ?? 0),
+      }
+    : null
+
+  const computedTotal = normalizedDimensions
+    ? calculateCreditTotal(normalizedDimensions)
+    : 0
+
+  const formattedCreditScore: CreditScore | null = normalizedDimensions
+    ? {
+        total: computedTotal,
+        change: 0, // TODO: 等待链上历史数据支持
+        dimensions: normalizedDimensions,
         lastUpdated: (() => {
-          const timestamp = Number(creditInfo[0].lastUpdate)
-          if (timestamp === 0 || !timestamp) {
+          const timestamp = creditInfo ? Number(creditInfo[0].lastUpdate) : 0
+          if (!timestamp) {
             return new Date().toISOString()
           }
           return new Date(timestamp * 1000).toISOString()

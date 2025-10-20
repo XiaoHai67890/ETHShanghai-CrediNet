@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import confetti from 'canvas-confetti'
 import { useDynamicSBT, getRarityColor, getRarityIcon } from '@/hooks/useDynamicSBT'
 import CreditRadarChart from '@/components/charts/CreditRadarChart'
+import { mockCreditScore } from '@/mock/data'
 import type { Address } from 'viem'
 
 interface SBTDynamicDisplayProps {
@@ -57,7 +58,26 @@ export const SBTDynamicDisplay = ({ userAddress }: SBTDynamicDisplayProps) => {
     )
   }
 
-  const { score, totalScore, rarity } = creditInfo
+  // 检查链上数据是否有效（所有维度都不为0）
+  const hasValidChainData = creditInfo.score.keystone > 0 || 
+                            creditInfo.score.ability > 0 || 
+                            creditInfo.score.wealth > 0 || 
+                            creditInfo.score.health > 0 || 
+                            creditInfo.score.behavior > 0
+
+  // 使用链上数据或 fallback 到 mock 数据
+  const displayScore = hasValidChainData ? creditInfo.score : {
+    keystone: mockCreditScore.dimensions.keystone,
+    ability: mockCreditScore.dimensions.ability,
+    wealth: mockCreditScore.dimensions.finance,
+    health: mockCreditScore.dimensions.health,
+    behavior: mockCreditScore.dimensions.behavior,
+    lastUpdate: 0,
+    updateCount: 0,
+  }
+
+  const displayTotalScore = hasValidChainData ? creditInfo.totalScore : mockCreditScore.total
+  const { rarity } = creditInfo
   const rarityColor = getRarityColor(rarity)
   const rarityIcon = getRarityIcon(rarity)
   const formatLastUpdate = (lastUpdate: number) => {
@@ -75,7 +95,7 @@ export const SBTDynamicDisplay = ({ userAddress }: SBTDynamicDisplayProps) => {
     <div className="relative">
       {/* SBT 卡片展示 */}
       <motion.div
-        key={totalScore} // 分数变化时触发动画
+        key={displayTotalScore} // 分数变化时触发动画
         initial={{ scale: 1 }}
         animate={{ scale: [1, 1.05, 1] }}
         transition={{ duration: 0.5 }}
@@ -92,14 +112,14 @@ export const SBTDynamicDisplay = ({ userAddress }: SBTDynamicDisplayProps) => {
         {/* C-Score 显示 */}
         <div className="text-center mb-6">
           <motion.div
-            key={totalScore}
+            key={displayTotalScore}
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.5 }}
             className="relative inline-block"
           >
             <div className={`text-6xl font-bold bg-gradient-to-r ${rarityColor} bg-clip-text text-transparent mb-2`}>
-              {totalScore}
+              {displayTotalScore}
             </div>
             <div className="text-gray-400 text-sm">C-Score</div>
           </motion.div>
@@ -107,17 +127,17 @@ export const SBTDynamicDisplay = ({ userAddress }: SBTDynamicDisplayProps) => {
 
         {/* 五维评分详情 */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-          <ScorePill label="基石 K" value={score.keystone} icon="🏛️" />
-          <ScorePill label="能力 A" value={score.ability} icon="💪" />
-          <ScorePill label="财富 F" value={score.wealth} icon="💰" />
-          <ScorePill label="健康 H" value={score.health} icon="🛡️" />
-          <ScorePill label="行为 B" value={score.behavior} icon="⭐" />
+          <ScorePill label="基石 K" value={displayScore.keystone} icon="🏛️" />
+          <ScorePill label="能力 A" value={displayScore.ability} icon="💪" />
+          <ScorePill label="财富 F" value={displayScore.wealth} icon="💰" />
+          <ScorePill label="健康 H" value={displayScore.health} icon="🛡️" />
+          <ScorePill label="行为 B" value={displayScore.behavior} icon="⭐" />
         </div>
 
         {/* 更新信息 */}
         <div className="flex items-center justify-between text-sm text-gray-400 border-t border-gray-700 pt-4">
-          <span>更新次数: {score.updateCount}</span>
-          <span>最后更新: {formatLastUpdate(score.lastUpdate)}</span>
+          <span>更新次数: {displayScore.updateCount}</span>
+          <span>最后更新: {formatLastUpdate(displayScore.lastUpdate)}</span>
         </div>
       </motion.div>
 
@@ -126,11 +146,11 @@ export const SBTDynamicDisplay = ({ userAddress }: SBTDynamicDisplayProps) => {
         <h3 className="text-xl font-bold text-white mb-4">五维评分雷达图</h3>
         <CreditRadarChart
           data={{
-            keystone: score.keystone,
-            ability: score.ability,
-            finance: score.wealth,
-            health: score.health,
-            behavior: score.behavior,
+            keystone: displayScore.keystone,
+            ability: displayScore.ability,
+            finance: displayScore.wealth,
+            health: displayScore.health,
+            behavior: displayScore.behavior,
           }}
         />
       </div>

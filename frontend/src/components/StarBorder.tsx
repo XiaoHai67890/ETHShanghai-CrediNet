@@ -29,7 +29,7 @@ export const StarBorder: React.FC<StarBorderProps> = ({
   borderRadius = '1rem',
   as: Component = 'div'
 }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const starsRef = useRef<Star[]>([]);
@@ -149,12 +149,14 @@ export const StarBorder: React.FC<StarBorderProps> = ({
     };
   }, [dimensions, starColor, glowColor]);
 
+  const componentProps: any = {
+    ref: containerRef,
+    className: `relative ${className}`,
+    style: { borderRadius }
+  };
+
   return (
-    <Component
-      ref={containerRef}
-      className={`relative ${className}`}
-      style={{ borderRadius }}
-    >
+    <Component {...componentProps}>
       <canvas
         ref={canvasRef}
         width={dimensions.width}
