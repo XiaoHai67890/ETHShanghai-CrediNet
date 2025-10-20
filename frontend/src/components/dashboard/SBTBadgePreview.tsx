@@ -142,9 +142,11 @@ const SBTBadgePreview = () => {
                         }}
                       />
 
-                      <div className="absolute -top-14 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white text-xs px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-slate-700 shadow-xl z-50">
-                        <div className="font-semibold">{planet.label}</div>
-                        <div className="text-emerald-400">{dimensionValue} 分</div>
+                      <div className="absolute -top-16 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white text-xs px-3 py-1.5 rounded-lg opacity-90 group-hover:opacity-100 transition-all whitespace-nowrap border border-slate-700 shadow-xl z-50 backdrop-blur-sm">
+                        <div className="font-semibold tracking-wide">{planet.label}</div>
+                        <div className="text-emerald-400 text-sm font-semibold">
+                          {(dimensionValue ?? 0).toString()} 分
+                        </div>
                       </div>
                     </motion.div>
                   </motion.div>
