@@ -97,7 +97,7 @@ const Marketplace = () => {
             className="group glass-card hover:shadow-glow transition-all duration-300"
           >
             {/* 应用图标 */}
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-5">
               <div className="w-16 h-16 rounded-xl bg-slate-700 flex items-center justify-center text-3xl group-hover:scale-110 transition-transform duration-300">
                 {getCategoryEmoji(app.category)}
               </div>

@@ -33,7 +33,7 @@ export const mockUser: User = {
   did: 'did:cred:0x12...9a4',
   address: '0xA1B2...C3D4',
   joinedDate: '2025-01-13',
-  lastSync: '2025-10-10',
+  lastSync: '2025.10.20',
   displayName: 'CrediNet User'
 }
 
@@ -55,7 +55,7 @@ export const mockCreditScore: CreditScore = {
   total: 0, // 将在下面动态计算
   change: 12,
   dimensions: mockDimensions,
-  lastUpdated: '2025-10-10 14:20'
+  lastUpdated: '2025.10.20 14:20'
 }
 
 /**
@@ -80,14 +80,14 @@ export const mockDataSources: DataSource[] = [
     name: 'World ID',
     description: '通过 World ID 验证您的人类身份',
     connected: true,
-    connectedAt: '2025-10-08 10:30'
+    connectedAt: '2025.10.19 10:30'
   },
   {
     id: 'self',
     name: 'self.xyz',
     description: '连接 self.xyz 获取链下凭证',
     connected: true,
-    connectedAt: '2025-10-09 15:20'
+    connectedAt: '2025.10.20 15:20'
   },
   {
     id: 'wallet',
@@ -100,7 +100,7 @@ export const mockDataSources: DataSource[] = [
     name: 'Off-chain VC',
     description: '上传链下可验证凭证',
     connected: true,
-    connectedAt: '2025-10-07 09:15'
+    connectedAt: '2025.10.18 09:15'
   }
 ]
 
@@ -112,7 +112,7 @@ export const mockDataSources: DataSource[] = [
 export const mockUsageRecords: UsageRecord[] = [
   {
     id: '1',
-    timestamp: '10-10 14:20',
+    timestamp: '10.20 14:20',
     appName: 'DeFi 协议 A',
     queryContent: '查询 C-Score',
     scope: '额度评估',
@@ -121,7 +121,7 @@ export const mockUsageRecords: UsageRecord[] = [
   },
   {
     id: '2',
-    timestamp: '10-09 21:02',
+    timestamp: '10.20 09:02',
     appName: '招聘平台 B',
     queryContent: '教育 VC',
     scope: '简历验证',
@@ -130,7 +130,7 @@ export const mockUsageRecords: UsageRecord[] = [
   },
   {
     id: '3',
-    timestamp: '10-08 11:36',
+    timestamp: '10.19 15:36',
     appName: '保险平台 C',
     queryContent: '行为数据',
     scope: '风险定价',
@@ -139,7 +139,7 @@ export const mockUsageRecords: UsageRecord[] = [
   },
   {
     id: '4',
-    timestamp: '10-07 16:45',
+    timestamp: '10.19 08:45',
     appName: 'Social Graph',
     queryContent: 'Off-chain VC',
     scope: '社交网络构建',
@@ -148,7 +148,7 @@ export const mockUsageRecords: UsageRecord[] = [
   },
   {
     id: '5',
-    timestamp: '10-06 09:12',
+    timestamp: '10.18 11:12',
     appName: 'DAO Platform',
     queryContent: '链上贡献记录',
     scope: '治理权重计算',
@@ -265,21 +265,21 @@ export const mockDataAuthorizations: DataAuthorization[] = [
     appId: '1',
     appName: 'DeFi_DApp',
     authorizedDimensions: ['行为 B', '能力 A', '基石 K'],
-    authorizedAt: '2025-10-05 14:30',
+    authorizedAt: '2025.10.18 14:30',
     status: 'active'
   },
   {
     appId: '2',
     appName: '招聘_DApp',
     authorizedDimensions: ['财富 VC（引微信）'],
-    authorizedAt: '2025-10-06 09:15',
+    authorizedAt: '2025.10.19 09:15',
     status: 'active'
   },
   {
     appId: '3',
     appName: '保险_DApp',
     authorizedDimensions: ['C-Score（只读快照）'],
-    authorizedAt: '2025-10-07 16:45',
+    authorizedAt: '2025.10.20 16:45',
     status: 'active'
   }
 ]

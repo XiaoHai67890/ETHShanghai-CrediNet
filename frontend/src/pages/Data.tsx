@@ -35,6 +35,14 @@ const Data = () => {
     )
   }
 
+  const handleRestoreAuth = (appId: string) => {
+    setAuthorizations((prev) =>
+      prev.map((auth) =>
+        auth.appId === appId ? { ...auth, status: 'active' as const } : auth
+      )
+    )
+  }
+
   // const connectedCount = dataSources.filter(ds => ds.connected).length
   const storagePercentage = 63
 
@@ -204,14 +212,23 @@ const Data = () => {
                   </span>
                 </div>
 
-                {auth.status === 'active' && (
-                  <button
-                    onClick={() => handleRevokeAuth(auth.appId)}
-                    className="mt-2 text-xs text-red-400 hover:text-red-300 transition-colors"
-                  >
-                    撤销授权
-                  </button>
-                )}
+                <div className="mt-2">
+                  {auth.status === 'active' ? (
+                    <button
+                      onClick={() => handleRevokeAuth(auth.appId)}
+                      className="text-xs text-red-400 hover:text-red-300 transition-colors"
+                    >
+                      撤销授权
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleRestoreAuth(auth.appId)}
+                      className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors"
+                    >
+                      恢复授权
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>

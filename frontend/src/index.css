@@ -75,7 +75,7 @@
 
   /* 毛玻璃卡片 */
   .glass-card {
-    @apply bg-dark-card/60 backdrop-blur-xl border border-dark-border/50 rounded-2xl;
+    @apply bg-dark-card/60 backdrop-blur-xl border border-dark-border/50 rounded-2xl p-6;
   }
 
   /* 渐变边框卡片 */
