@@ -11,6 +11,8 @@ import MintSBTExample from './pages/MintSBTExample'
 import NotFound from './pages/NotFound'
 import WorldID from './pages/WorldID'
 import SelfXyz from './pages/SelfXyz'
+import Wallet from './pages/Wallet'
+import OffchainVC from './pages/OffchainVC'
 import StarBorderDemo from './pages/StarBorderDemo'
 
 function App() {
@@ -29,6 +31,8 @@ function App() {
           <Route path="/mint-sbt" element={<MintSBTExample />} />
           <Route path="/worldid" element={<WorldID />} />
           <Route path="/selfxyz" element={<SelfXyz />} />
+          <Route path="/wallet" element={<Wallet />} />
+          <Route path="/offchain-vc" element={<OffchainVC />} />
           <Route path="/star-demo" element={<StarBorderDemo />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

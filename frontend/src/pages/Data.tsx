@@ -24,6 +24,10 @@ const Data = () => {
       navigate('/worldid')
     } else if (id === 'self') {
       navigate('/selfxyz')
+    } else if (id === 'wallet') {
+      navigate('/wallet')
+    } else if (id === 'offchain') {
+      navigate('/offchain-vc')
     }
   }
 
@@ -80,9 +84,7 @@ const Data = () => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 + index * 0.1 }}
               onClick={() => handleCardClick(source.id)}
-              className={`p-5 rounded-xl bg-dark-card/50 border border-dark-border hover:border-primary-500/50 transition-all duration-300 ${
-                source.id === 'worldid' || source.id === 'self' ? 'cursor-pointer hover:scale-105' : ''
-              }`}
+              className="p-5 rounded-xl bg-dark-card/50 border border-dark-border hover:border-primary-500/50 transition-all duration-300 cursor-pointer hover:scale-105"
             >
               <div className="text-center mb-4">
                 <div className="text-lg font-semibold text-white mb-2">
