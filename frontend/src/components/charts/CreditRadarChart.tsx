@@ -2,6 +2,7 @@ import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, Tool
 import { motion } from 'framer-motion'
 import { mockCreditScore, creditDimensions } from '@/mock/data'
 import { Shield, Zap, DollarSign, Heart, Activity } from 'lucide-react'
+import CreditOrbitVisualizer from './CreditOrbitVisualizer'
 
 type RadarDataInput = {
   keystone: number
@@ -19,13 +20,17 @@ const CreditRadarChart = ({ data: external }: Props) => {
   // 检查是否所有维度数据都是0或接近0
   const hasValidData = external && Object.values(external).some(val => val > 0)
   
-  const source = hasValidData
-    ? {
-        total: Object.values(external).reduce((a, b) => a + b, 0),
-        change: 0,
-        dimensions: external,
-      }
-    : mockCreditScore
+  const resolvedDimensions: RadarDataInput = hasValidData
+    ? (external as RadarDataInput)
+    : mockCreditScore.dimensions
+
+  const source = {
+    total: hasValidData
+      ? Object.values(resolvedDimensions).reduce((a, b) => a + b, 0)
+      : mockCreditScore.total,
+    change: hasValidData ? 0 : mockCreditScore.change,
+    dimensions: resolvedDimensions
+  }
 
   // 图标映射
   const iconMap = {
@@ -67,44 +72,55 @@ const CreditRadarChart = ({ data: external }: Props) => {
         </div>
       </div>
 
-      {/* 雷达图 */}
-      <ResponsiveContainer width="100%" height={320}>
-        <RadarChart data={data}>
-          <PolarGrid 
-            stroke="#4a5568" 
-            strokeWidth={1}
+      {/* 雷达图 + 星球轨道 */}
+      <div className="grid gap-8 xl:grid-cols-[1.25fr_1fr] items-center">
+        <div className="h-[320px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <RadarChart data={data}>
+              <PolarGrid 
+                stroke="#4a5568" 
+                strokeWidth={1}
+              />
+              <PolarAngleAxis
+                dataKey="dimension"
+                tick={{
+                  fill: '#e2e8f0',
+                  fontSize: 14,
+                  fontWeight: 500
+                }}
+              />
+              <Radar
+                dataKey="value"
+                stroke="#60a5fa"
+                strokeWidth={2.5}
+                fill="#3b82f6"
+                fillOpacity={0.5}
+                animationDuration={1000}
+                animationBegin={0}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'rgba(26, 30, 61, 0.95)',
+                  border: '1px solid rgba(99, 102, 241, 0.3)',
+                  borderRadius: '12px',
+                  color: '#fff'
+                }}
+                formatter={(value: any) => [`${value}`, '得分']}
+              />
+            </RadarChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="flex items-center justify-center">
+          <CreditOrbitVisualizer
+            dimensions={source.dimensions}
+            total={source.total}
+            change={source.change}
           />
-          <PolarAngleAxis
-            dataKey="dimension"
-            tick={{
-              fill: '#e2e8f0',
-              fontSize: 14,
-              fontWeight: 500
-            }}
-          />
-          <Radar
-            dataKey="value"
-            stroke="#60a5fa"
-            strokeWidth={2.5}
-            fill="#3b82f6"
-            fillOpacity={0.5}
-            animationDuration={1000}
-            animationBegin={0}
-          />
-          <Tooltip
-            contentStyle={{
-              backgroundColor: 'rgba(26, 30, 61, 0.95)',
-              border: '1px solid rgba(99, 102, 241, 0.3)',
-              borderRadius: '12px',
-              color: '#fff'
-            }}
-            formatter={(value: any) => [`${value}`, '得分']}
-          />
-        </RadarChart>
-      </ResponsiveContainer>
+        </div>
+      </div>
 
       {/* 维度详情 */}
-      <div className="grid grid-cols-5 gap-4 mt-6">
+      <div className="grid grid-cols-1 gap-4 mt-6 sm:grid-cols-2 xl:grid-cols-5">
         {data.map((dim, index) => {
           const IconComponent = dim.icon
           return (
